@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mes coloriages — Bibliothèque</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="light">
+
+  <!-- Indicateur de chargement initial : visible dès l'ouverture du fichier,
+       avant même que le JS ait pu s'exécuter. Utile notamment lors d'une
+       mise à jour de version de la base (IndexedDB), qui peut prendre
+       quelques secondes de plus si la bibliothèque contient déjà beaucoup
+       de données — sans ça, l'écran semble figé pendant ce court instant. -->
+  <div class="app-loading-overlay" id="app-loading-overlay">
+    <svg class="app-loading-overlay__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="6" y="4" width="11" height="40" rx="2" transform="rotate(-8 6 4)" fill="#D88C5A"/>
+      <rect x="19" y="4" width="11" height="40" rx="2" fill="#7A9E7E"/>
+      <rect x="32" y="4" width="11" height="40" rx="2" transform="rotate(8 32 4)" fill="#E2C14D"/>
+    </svg>
+    <p class="app-loading-overlay__text">Chargement de ta bibliothèque…</p>
+  </div>
+
+  <!-- ===== EN-TÊTE ===== -->
+  <header class="app-header">
+    <div class="seasonal-layer" id="seasonal-layer"></div>
+
+    <button class="app-header__brand" id="btn-go-home" type="button" title="Retour à la bibliothèque">
+      <svg class="app-header__logo" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="6" y="4" width="11" height="40" rx="2" transform="rotate(-8 6 4)" fill="#D88C5A"/>
+        <rect x="19" y="4" width="11" height="40" rx="2" fill="#7A9E7E"/>
+        <rect x="32" y="4" width="11" height="40" rx="2" transform="rotate(8 32 4)" fill="#E2C14D"/>
+      </svg>
+      <div>
+        <h1 class="app-header__title">Mes coloriages</h1>
+        <p class="app-header__subtitle">Bibliothèque &amp; suivi par année</p>
+        <p class="app-header__credit">by Netflixio</p>
+      </div>
+    </button>
+
+    <!-- Carrousel "vivant" de toutes les pages avec photo : dans le bandeau
+         de l'en-tête lui-même, entre le titre et les icônes — visible sur
+         toutes les vues sauf la galerie des favoris (pour éviter le doublon). -->
+    <div class="photo-carousel" id="photo-carousel" hidden>
+      <div class="photo-carousel__track" id="photo-carousel-track"></div>
+    </div>
+
+    <div class="app-header__actions">
+      <button class="icon-btn" id="btn-legend" type="button" title="Légende des années" aria-label="Légende des couleurs par année">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="3"/><circle cx="8" cy="16" r="3"/><path d="M14 8h7M14 16h7"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-challenges" type="button" title="Challenges" aria-label="Voir mes challenges">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4a1 1 0 0 0-1 1v1a4 4 0 0 0 4 4M17 5h3a1 1 0 0 1 1 1v1a4 4 0 0 1-4 4"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-wishlist" type="button" title="Wishlist" aria-label="Voir ma wishlist">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17.3 6.2 21l1.6-6.8L2.5 9.7l7-.6L12 2.5l2.5 6.6 7 .6-5.3 4.5 1.6 6.8z"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-gear" type="button" title="Trousse à matos" aria-label="Voir ma trousse à matos">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16l-1.5 12.5a2 2 0 0 1-2 1.5H7.5a2 2 0 0 1-2-1.5L4 7Z"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M9 12h6"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-combos" type="button" title="Combos de couleurs" aria-label="Voir mes combos de couleurs">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><circle cx="12" cy="16" r="3"/></svg>
+      </button>
+      <button class="icon-btn icon-btn--notif-wrap" id="btn-favorites-gallery" type="button" title="Galerie" aria-label="Voir la galerie de mes coloriages">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20.5s-7.5-4.6-10-9.3C.7 8.1 2.4 5 5.7 5c1.9 0 3.3 1 4.1 2.2.4.5.6.8 1.2.8s.8-.3 1.2-.8C13 6 14.4 5 16.3 5c3.3 0 5 3.1 3.7 6.2-2.5 4.7-10 9.3-10 9.3Z"/></svg>
+        <span class="notif-dot" id="badge-notif-dot" hidden aria-hidden="true"></span>
+        <span class="notif-dot notif-dot--mission" id="mission-notif-dot" hidden aria-hidden="true"></span>
+      </button>
+      <button class="icon-btn" id="btn-dashboard" type="button" title="Tableau de bord" aria-label="Tableau de bord">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      </button>
+      <div class="menu-wrap" id="menu-wrap">
+        <button class="icon-btn" id="btn-menu" type="button" title="Plus d'options" aria-label="Plus d'options" aria-haspopup="true" aria-expanded="false">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+        </button>
+        <div class="dropdown-menu" id="dropdown-menu" hidden>
+          <button type="button" class="dropdown-menu__item" id="btn-theme">
+            <svg class="icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+            <svg class="icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            Changer de thème
+          </button>
+          <label class="dropdown-menu__item dropdown-menu__item--color" for="accent-color-picker">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="12" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="13.5" cy="17.5" r="2.5"/><path d="M12 2a10 10 0 1 0 0 20 4 4 0 0 0 0-8 2 2 0 1 1 0-4 4 4 0 0 0 0-8Z"/></svg>
+            <span>Couleur d'accent</span>
+            <input type="color" id="accent-color-picker" value="#D88C5A">
+          </label>
+          <button type="button" class="dropdown-menu__item dropdown-menu__item--secondary" id="btn-reset-accent-color">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 2.6-6.4M3 4v5h5"/></svg>
+            Couleur par défaut
+          </button>
+          <button type="button" class="dropdown-menu__item" id="btn-export-data">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            Exporter mes données
+          </button>
+          <button type="button" class="dropdown-menu__item" id="btn-import-data">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 0 4 4m-4-4-4 4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            Importer une sauvegarde
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <input type="file" id="input-import-file" accept="application/json,.json" hidden>
+
+  <!-- ===== VUE BIBLIOTHÈQUE ===== -->
+  <main class="view view-library" id="view-library">
+
+    <div class="library-toolbar">
+      <div class="search-field">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="text" id="search-input" placeholder="Rechercher un livre…" autocomplete="off">
+      </div>
+
+      <button class="btn btn--secondary" id="btn-tag-search" type="button">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 13 21l-9-9 7.6-7.6a2 2 0 0 1 1.4-.6H19a1 1 0 0 1 1 1v5.2a2 2 0 0 1-.6 1.4Z"/><circle cx="15.5" cy="8.5" r="1.2"/></svg>
+        Par tag
+      </button>
+
+      <button class="btn btn--secondary" id="btn-status-search" type="button">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M7 9c-2 0-3.5 1.5-3.5 3s1.5 3 3.5 3c2.5 0 3.5-6 6-6 2 0 3.5 1.5 3.5 3s-1.5 3-3.5 3c-2.5 0-3.5-6-6-6Z"/></svg>
+        Pages en cours
+      </button>
+
+      <div class="menu-wrap" id="random-pick-menu-wrap">
+        <button class="btn btn--secondary" id="btn-random-pick" type="button">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.4" fill="currentColor" stroke="none"/><circle cx="16" cy="8" r="1.4" fill="currentColor" stroke="none"/><circle cx="8" cy="16" r="1.4" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>
+          Hasard
+        </button>
+        <div class="dropdown-menu" id="random-pick-dropdown" hidden>
+          <button type="button" class="dropdown-menu__item" id="btn-random-book">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+            Un livre au hasard
+          </button>
+          <button type="button" class="dropdown-menu__item" id="btn-random-page">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            Une page au hasard (tous livres)
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar-tabs" role="tablist">
+        <button class="toolbar-tab is-active" data-shelf-filter="active" type="button" role="tab" aria-selected="true">Mes livres</button>
+        <button class="toolbar-tab" data-shelf-filter="archived" type="button" role="tab" aria-selected="false">Archivés</button>
+      </div>
+
+      <div class="sort-field">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M6 12h12M10 17h4"/></svg>
+        <select id="sort-select" aria-label="Trier / regrouper la bibliothèque">
+          <option value="default">Ordre d'ajout</option>
+          <option value="purchaseYear" selected>Par année d'achat</option>
+          <option value="progress">Par progression</option>
+          <option value="bookType">Par type</option>
+        </select>
+      </div>
+
+      <span class="library-total-count" id="library-total-count" hidden></span>
+
+      <button class="btn btn--primary" id="btn-add-book" type="button">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+        Ajouter un livre
+      </button>
+    </div>
+
+    <div id="shelves-container" class="shelves-container">
+      <!-- Les étagères sont générées dynamiquement en JS -->
+    </div>
+
+    <div class="empty-state" id="empty-state" hidden>
+      <svg class="empty-state__icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 14a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v40L20 50 10 54V14Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M30 14a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v40l-10-4-10 4V14Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+      </svg>
+      <h2 class="empty-state__title">L'étagère est vide</h2>
+      <p class="empty-state__text">Ajoute ton premier livre de coloriage pour commencer à suivre tes pages, année après année.</p>
+      <button class="btn btn--primary" id="btn-add-book-empty" type="button">Ajouter un livre</button>
+    </div>
+
+  </main>
+
+  <!-- ===== VUE FICHE DÉTAILLÉE D'UN LIVRE ===== -->
+  <main class="view view-book" id="view-book" hidden>
+
+    <button class="back-link" id="btn-back-to-library" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour à la bibliothèque
+    </button>
+
+    <div class="book-detail-header">
+      <div class="book-detail-header__cover" id="book-detail-cover"></div>
+
+      <div class="book-detail-header__info">
+        <div class="book-detail-header__top">
+          <div>
+            <h1 class="book-detail-header__title" id="book-detail-title"></h1>
+            <p class="book-detail-header__author" id="book-detail-author"></p>
+          </div>
+          <div class="book-detail-header__actions">
+            <button class="icon-btn" id="btn-archive-book" type="button" title="Archiver / désarchiver" aria-label="Archiver ou désarchiver ce livre">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/></svg>
+            </button>
+            <button class="icon-btn" id="btn-edit-book" type="button" title="Modifier ce livre" aria-label="Modifier ce livre">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <p class="book-detail-header__notes" id="book-detail-notes" hidden></p>
+
+        <div class="book-detail-header__stats">
+          <div class="stat-chip">
+            <span class="stat-chip__value" id="book-detail-colored-count">0</span>
+            <span class="stat-chip__label">/ <span id="book-detail-total-pages">0</span> pages coloriées</span>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-chip__value" id="book-detail-percent">0%</span>
+            <span class="stat-chip__label">d'avancement</span>
+          </div>
+          <div class="stat-chip" id="book-detail-purchase-year-chip" hidden>
+            <span class="stat-chip__value" id="book-detail-purchase-year"></span>
+            <span class="stat-chip__label">année d'achat</span>
+          </div>
+        </div>
+
+        <div class="year-progress-bar year-progress-bar--lg" id="book-detail-progress-bar"></div>
+
+        <div class="milestones-row" id="book-detail-milestones">
+          <!-- Étapes 25/50/75/100% générées dynamiquement -->
+        </div>
+      </div>
+    </div>
+
+    <div class="book-detail-toolbar">
+      <div>
+        <h2 class="book-detail-toolbar__title">Pages</h2>
+        <p class="book-detail-toolbar__hint">Clic gauche pour choisir une année · clic droit sur une page coloriée pour ajouter une photo.</p>
+      </div>
+
+      <button class="btn btn--secondary" id="btn-random-page-in-book" type="button">
+        🎲 Page au hasard
+      </button>
+
+      <div class="view-mode-switch" role="tablist" aria-label="Mode d'affichage de la grille">
+        <button class="view-mode-switch__option is-active" data-view-mode="color" type="button" role="tab" aria-selected="true">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Code couleur
+        </button>
+        <button class="view-mode-switch__option" data-view-mode="photo" type="button" role="tab" aria-selected="false">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          Coloriages
+        </button>
+      </div>
+    </div>
+
+    <div class="page-grid" id="page-grid">
+      <!-- Cases de pages générées dynamiquement en JS -->
+    </div>
+
+  </main>
+
+  <!-- ===== VUE RECHERCHE PAR TAG ===== -->
+  <main class="view view-tag-search" id="view-tag-search" hidden>
+
+    <button class="back-link" id="btn-back-from-tag-search" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour à la bibliothèque
+    </button>
+
+    <h1 class="tag-search__title">Recherche par étiquette</h1>
+    <p class="tag-search__hint">Cherche un thème ou un personnage — par exemple « Raiponce » — parmi tous tes livres et toutes tes pages, coloriées ou non.</p>
+
+    <div class="search-field search-field--lg">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" id="tag-search-input" placeholder="Taper une étiquette…" autocomplete="off">
+    </div>
+
+    <label class="tag-multi-toggle" id="tag-multi-toggle">
+      <input type="checkbox" id="checkbox-tag-multi" checked>
+      <span class="tag-multi-toggle__track">
+        <span class="tag-multi-toggle__thumb"></span>
+      </span>
+      <span class="tag-multi-toggle__label">Recherche multiple</span>
+    </label>
+
+    <div class="tag-cloud-row">
+      <div class="tag-suggestions tag-suggestions--cloud" id="tag-search-cloud"></div>
+      <button class="link-btn link-btn--manage" id="btn-manage-tags" type="button">Gérer mes étiquettes</button>
+    </div>
+
+    <div class="tag-search-selected" id="tag-search-selected" hidden></div>
+
+    <div id="tag-search-results">
+      <!-- Résultats générés dynamiquement -->
+    </div>
+
+  </main>
+
+  <!-- ===== VUE RECHERCHE PAR STATUT ===== -->
+  <main class="view view-status-search" id="view-status-search" hidden>
+
+    <button class="back-link" id="btn-back-from-status-search" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour à la bibliothèque
+    </button>
+
+    <h1 class="tag-search__title">Pages en cours, abandonnées, ratées…</h1>
+    <p class="tag-search__hint">Retrouve toutes les pages dans un état particulier, tous livres confondus — pratique pour ne pas en oublier en chemin.</p>
+
+    <div class="status-filter-row" id="status-filter-row">
+      <!-- Boutons de filtre générés dynamiquement -->
+    </div>
+
+    <div id="status-search-results">
+      <!-- Résultats générés dynamiquement -->
+    </div>
+
+  </main>
+
+  <!-- ===== VUE STATISTIQUES ===== -->
+  <main class="view view-stats" id="view-stats" hidden>
+
+    <button class="back-link" id="btn-back-from-stats" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour à la bibliothèque
+    </button>
+
+    <h1 class="stats__title">Statistiques</h1>
+    <p class="stats__hint">Un coup d'œil sur ton activité de coloriage, toutes bibliothèques confondues.</p>
+
+    <!-- Personnalisation des couleurs des stats -->
+    <section class="stats-section">
+      <div class="stats-color-customizer-header" id="stats-color-customizer-header">
+        <button type="button" class="stats-color-customizer-chevron" aria-label="Développer/réduire">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <h2 class="stats-section__title" style="margin:0;">🎨 Personnaliser les couleurs</h2>
+      </div>
+      <div class="stats-card" id="stats-color-customizer-body" hidden>
+        <div id="stats-color-customizer-content"></div>
+        <button type="button" class="link-btn" id="btn-reset-stats-colors" style="margin-top:14px;">Réinitialiser toutes ces couleurs</button>
+      </div>
+    </section>
+
+    <!-- Chiffres clés -->
+    <div class="stats-kpis" id="stats-kpis">
+      <!-- Générés dynamiquement -->
+    </div>
+
+    <!-- Répartition par année -->
+    <section class="stats-section">
+      <h2 class="stats-section__title">Pages coloriées par année</h2>
+      <div class="stats-card">
+        <div id="stats-year-chart"></div>
+      </div>
+    </section>
+
+    <div class="stats-grid-2">
+      <!-- Avancement des livres -->
+      <section class="stats-section">
+        <h2 class="stats-section__title">Avancement des livres</h2>
+        <div class="stats-card">
+          <div id="stats-progress-donut"></div>
+        </div>
+      </section>
+
+      <!-- Top étiquettes -->
+      <section class="stats-section">
+        <h2 class="stats-section__title">Étiquettes les plus utilisées</h2>
+        <div class="stats-card">
+          <div id="stats-top-tags"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Stats par Type de livre (tags "shiny" issus des Types personnalisés) -->
+    <section class="stats-section" id="stats-booktype-section" hidden>
+      <h2 class="stats-section__title">Coloriages par type de livre</h2>
+      <div class="stats-card">
+        <div id="stats-booktype-global"></div>
+      </div>
+    </section>
+
+    <!-- États spéciaux de pages (en cours, abandonnées, ratées, Kévin) -->
+    <section class="stats-section" id="stats-special-statuses-section" hidden>
+      <h2 class="stats-section__title">Pages en attente ou de côté</h2>
+      <div class="stats-card">
+        <div id="stats-special-statuses"></div>
+      </div>
+    </section>
+
+    <!-- Challenges terminés par année -->
+    <section class="stats-section" id="stats-challenges-section" hidden>
+      <h2 class="stats-section__title">Challenges terminés par année</h2>
+      <div class="stats-card">
+        <div id="stats-challenge-year-chart"></div>
+      </div>
+    </section>
+
+    <!-- Budget wishlist -->
+    <section class="stats-section" id="stats-wishlist-budget-section" hidden>
+      <h2 class="stats-section__title">Budget wishlist</h2>
+      <div class="stats-card">
+        <div id="stats-wishlist-budget"></div>
+      </div>
+    </section>
+
+    <!-- Palmarès -->
+    <section class="stats-section">
+      <h2 class="stats-section__title">Palmarès</h2>
+      <div class="stats-card">
+        <div id="stats-highlights"></div>
+      </div>
+    </section>
+
+    <!-- Récap annuel -->
+    <section class="stats-section" id="stats-yearly-recap-section" hidden>
+      <div class="stats-section__title-row">
+        <h2 class="stats-section__title">Récap annuel</h2>
+        <select id="yearly-recap-select" class="select-field"></select>
+      </div>
+      <div class="stats-card">
+        <div id="stats-yearly-recap"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== VUE TROUSSE À MATOS ===== -->
+  <main class="view view-gear" id="view-gear" hidden>
+
+    <button class="back-link" id="btn-back-from-gear" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour à la bibliothèque
+    </button>
+
+    <div class="library-toolbar">
+      <div>
+        <h1 class="tag-search__title" style="margin-bottom:4px;">Ma trousse à matos</h1>
+        <p class="tag-search__hint" style="margin-bottom:0;">Tout ton matériel de coloriage, et ce qu'il manque à racheter.</p>
+      </div>
+      <button class="btn btn--primary" id="btn-add-gear-item" type="button">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+        Ajouter du matériel
+      </button>
+    </div>
+
+    <div class="library-toolbar" style="margin-top:-10px;">
+      <div class="sort-field">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 13 21l-9-9 7.6-7.6a2 2 0 0 1 1.4-.6H19a1 1 0 0 1 1 1v5.2a2 2 0 0 1-.6 1.4Z"/><circle cx="15.5" cy="8.5" r="1.2"/></svg>
+        <select id="gear-category-filter">
+          <option value="">Toutes les catégories</option>
+        </select>
+      </div>
+      <div class="sort-field">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+        <select id="gear-medium-filter">
+          <option value="">Tous les médiums</option>
+        </select>
+      </div>
+      <button class="btn btn--secondary" id="btn-gear-status-search" type="button">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 5l14 14M19 5 5 19"/></svg>
+        Manquant / Mort
+      </button>
+      <button class="link-btn" id="btn-manage-gear-categories" style="margin-left:auto;">Gérer mes catégories</button>
+    </div>
+
+    <div id="gear-grid" class="wishlist-grid">
+      <!-- Cartes générées dynamiquement -->
+    </div>
+
+    <div class="empty-state" id="gear-empty-state" hidden>
+      <svg class="empty-state__icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 22h36l-5 36a4 4 0 0 1-4 3.5H23a4 4 0 0 1-4-3.5L14 22Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M22 22v-6a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v6" stroke="currentColor" stroke-width="2.5"/>
+      </svg>
+      <h2 class="empty-state__title">Ta trousse est vide</h2>
+      <p class="empty-state__text">Ajoute le matériel que tu possèdes — feutres, crayons, accessoires…</p>
+      <button class="btn btn--primary" id="btn-add-gear-item-empty" type="button">Ajouter du matériel</button>
+    </div>
+
+  </main>
+
+  <!-- ===== VUE FICHE DÉTAILLÉE D'UNE BOÎTE ===== -->
+  <main class="view view-gear-detail" id="view-gear-detail" hidden>
+
+    <button class="back-link" id="btn-back-from-gear-detail" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour à la trousse
+    </button>
+
+    <div class="book-detail-header">
+      <div class="book-detail-header__cover" id="gear-detail-cover"></div>
+
+      <div class="book-detail-header__info">
+        <div class="book-detail-header__top">
+          <div>
+            <h1 class="book-detail-header__title" id="gear-detail-title"></h1>
+            <p class="book-detail-header__author" id="gear-detail-categories"></p>
+          </div>
+          <div class="book-detail-header__actions">
+            <button class="icon-btn" id="btn-edit-gear-item" type="button" title="Modifier" aria-label="Modifier cet objet">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <p class="book-detail-header__notes" id="gear-detail-notes" hidden></p>
+
+        <div class="book-detail-header__stats">
+          <div class="stat-chip">
+            <span class="stat-chip__value" id="gear-detail-ok-count">0</span>
+            <span class="stat-chip__label">/ <span id="gear-detail-total-units">0</span> au complet</span>
+          </div>
+          <div class="stat-chip" id="gear-detail-missing-chip" hidden>
+            <span class="stat-chip__value" id="gear-detail-missing-count">0</span>
+            <span class="stat-chip__label">manquant(s)</span>
+          </div>
+          <div class="stat-chip" id="gear-detail-dead-chip" hidden>
+            <span class="stat-chip__value" id="gear-detail-dead-count">0</span>
+            <span class="stat-chip__label">mort(s) à racheter</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="book-detail-toolbar">
+      <h2 class="book-detail-toolbar__title">Couleurs / unités</h2>
+      <button class="btn btn--secondary" id="btn-add-gear-unit" type="button">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+        Ajouter une couleur
+      </button>
+    </div>
+
+    <div class="search-field" id="gear-unit-search-wrap" style="max-width:320px; margin-bottom:14px;">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" id="gear-unit-search-input" placeholder="Nom, ou « manquant » / « mort »…" autocomplete="off">
+    </div>
+
+    <div class="challenge-items-list" id="gear-units-list">
+      <!-- Unités générées dynamiquement -->
+    </div>
+
+  </main>
+
+  <!-- ===== VUE COMBOS DE COULEURS ===== -->
+  <main class="view view-combos" id="view-combos" hidden>
+
+    <button class="back-link" id="btn-back-from-combos" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour à la bibliothèque
+    </button>
+
+    <div class="library-toolbar">
+      <div>
+        <h1 class="tag-search__title" style="margin-bottom:4px;" id="combos-section-title">Mes combos de couleurs</h1>
+        <p class="tag-search__hint" style="margin-bottom:0;" id="combos-section-hint">Tes associations de couleurs préférées, classées par catégorie.</p>
+      </div>
+      <button class="btn btn--primary" id="btn-add-combo" type="button">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+        Nouveau combo
+      </button>
+      <button class="btn btn--primary" id="btn-add-character" type="button" hidden>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+        Nouveau personnage
+      </button>
+      <button class="btn btn--primary" id="btn-add-palette" type="button" hidden>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+        Nouvelle palette
+      </button>
+      <button class="btn btn--primary" id="btn-add-technique" type="button" hidden>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+        Ajouter
+      </button>
+    </div>
+
+    <div class="toolbar-tabs" role="tablist" style="margin-bottom:20px;">
+      <button class="toolbar-tab is-active" data-combos-section="combos" type="button" role="tab" aria-selected="true">Combos</button>
+      <button class="toolbar-tab" data-combos-section="characters" type="button" role="tab" aria-selected="false">Personnages</button>
+      <button class="toolbar-tab" data-combos-section="palettes" type="button" role="tab" aria-selected="false">Palettes</button>
+      <button class="toolbar-tab" data-combos-section="techniques" type="button" role="tab" aria-selected="false">Techniques</button>
+    </div>
+
+    <div id="combo-categories-view">
+      <!-- Cartes de catégories OU grille de combos d'une catégorie, généré dynamiquement -->
+    </div>
+
+    <div id="characters-grid-view" hidden>
+      <!-- Grille des fiches personnage, générée dynamiquement -->
+    </div>
+
+    <div id="palettes-view" hidden>
+      <!-- Grille des palettes, générée dynamiquement -->
+    </div>
+
+    <div id="techniques-view" hidden>
+      <!-- Liste des techniques/tutos, générée dynamiquement -->
+    </div>
+
+  </main>
+
+  <!-- ===== VUE FICHE DÉTAILLÉE D'UN COMBO ===== -->
+  <main class="view view-combo-detail" id="view-combo-detail" hidden>
+
+    <button class="back-link" id="btn-back-from-combo-detail" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour aux combos
+    </button>
+
+    <div class="combo-detail">
+      <div class="combo-detail__photos" id="combo-detail-photos">
+        <!-- Photo(s) générées dynamiquement -->
+      </div>
+
+      <div class="combo-detail__info">
+        <div class="combo-detail__top-row">
+          <h1 class="combo-detail__title" id="combo-detail-title"></h1>
+          <button class="icon-btn" id="btn-edit-combo" type="button" title="Modifier" aria-label="Modifier ce combo">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          </button>
+        </div>
+        <p class="combo-detail__categories" id="combo-detail-categories"></p>
+        <a class="combo-detail__link" id="combo-detail-link" href="#" target="_blank" rel="noopener noreferrer" hidden>
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/></svg>
+          Voir le lien
+        </a>
+
+        <div class="combo-detail__colors-list" id="combo-detail-colors-list">
+          <!-- Lignes de couleur générées dynamiquement -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ===== VUE GALERIE DES FAVORIS ===== -->
+  <main class="view view-favorites-gallery" id="view-favorites-gallery" hidden>
+
+    <button class="back-link" id="btn-back-from-gallery" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour à la bibliothèque
+    </button>
+
+    <div class="library-toolbar">
+      <div>
+        <h1 class="tag-search__title" style="margin-bottom:4px;">Galerie</h1>
+        <p class="tag-search__hint" style="margin-bottom:0;">Tes coloriages à savourer en grand.</p>
+      </div>
+      <div class="toolbar-tabs" role="tablist" id="gallery-tabs">
+        <!-- Onglets générés dynamiquement : Musée, Livre de coloriage, puis chaque Type de livre créé -->
+      </div>
+    </div>
+
+    <div id="gallery-content">
+      <!-- Section Mystère, Autres livres, ou Musée, générée dynamiquement -->
+    </div>
+
+    <div class="empty-state" id="gallery-empty-state" hidden>
+      <svg class="empty-state__icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 54s-19.5-12-26-24.3C2.7 22.6 6.2 14 14 14c5 0 8.6 2.6 10.7 5.7C25.7 21 26.3 22 28 22s2.3-1 3.3-2.3C33.4 16.6 37 14 42 14c7.8 0 11.3 8.6 6 16.7C41.5 42 32 54 32 54Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+      </svg>
+      <h2 class="empty-state__title" id="gallery-empty-title">Rien à montrer ici pour le moment</h2>
+      <p class="empty-state__text" id="gallery-empty-text">Colorie quelques pages avec une photo pour les voir apparaître ici.</p>
+    </div>
+
+  </main>
+
+  <!-- ===== VUE FICHE DÉTAILLÉE D'UN PERSONNAGE ===== -->
+  <main class="view view-character-detail" id="view-character-detail" hidden>
+
+    <button class="back-link" id="btn-back-from-character-detail" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour aux combos
+    </button>
+
+    <div class="character-detail__top-row">
+      <h1 class="character-detail__title" id="character-detail-title"></h1>
+      <div class="character-detail__actions">
+        <button class="icon-btn" id="btn-rename-character" type="button" title="Renommer" aria-label="Renommer ce personnage">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </button>
+        <button class="icon-btn" id="btn-delete-character" type="button" title="Supprimer" aria-label="Supprimer ce personnage">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6"/></svg>
+        </button>
+      </div>
+    </div>
+    <p class="character-detail__hint">Clique sur l'image pour placer un repère, puis choisis sa couleur depuis ta trousse.</p>
+
+    <div class="character-board" id="character-board">
+      <div class="character-board__legend-col character-board__legend-col--left">
+        <div class="character-board__legend-zone" id="character-legend-left-top"></div>
+        <div class="character-board__legend-zone" id="character-legend-left-mid"></div>
+        <div class="character-board__legend-zone" id="character-legend-left-bottom"></div>
+      </div>
+
+      <div class="character-board__image-wrap" id="character-image-wrap">
+        <img class="character-board__image" id="character-detail-image" src="" alt="" draggable="false">
+        <div class="character-board__markers" id="character-markers-layer"></div>
+        <svg class="character-board__lines" id="character-lines-svg"></svg>
+      </div>
+
+      <div class="character-board__legend-col character-board__legend-col--right">
+        <div class="character-board__legend-zone" id="character-legend-right-top"></div>
+        <div class="character-board__legend-zone" id="character-legend-right-mid"></div>
+        <div class="character-board__legend-zone" id="character-legend-right-bottom"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ===== VUE RECHERCHE PAR STATUT (MATÉRIEL) ===== -->
+  <main class="view view-status-search" id="view-gear-status-search" hidden>
+
+    <button class="back-link" id="btn-back-from-gear-status-search" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour à la trousse
+    </button>
+
+    <h1 class="tag-search__title">Couleurs manquantes ou mortes</h1>
+    <p class="tag-search__hint">Retrouve toutes les couleurs à problème, dans toutes tes boîtes, pour savoir quoi racheter.</p>
+
+    <div class="status-filter-row" id="gear-status-filter-row">
+      <!-- Boutons de filtre générés dynamiquement -->
+    </div>
+
+    <div id="gear-status-search-results">
+      <!-- Résultats générés dynamiquement -->
+    </div>
+
+  </main>
+
+  <!-- ===== VUE WISHLIST ===== -->
+  <main class="view view-wishlist" id="view-wishlist" hidden>
+
+    <button class="back-link" id="btn-back-from-wishlist" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour à la bibliothèque
+    </button>
+
+    <div class="library-toolbar">
+      <div>
+        <h1 class="tag-search__title" style="margin-bottom:4px;">Ma wishlist</h1>
+        <p class="tag-search__hint" style="margin-bottom:0;">Tout ce que tu rêves d'obtenir — livres et matériel de coloriage.</p>
+      </div>
+      <div class="wishlist-header-actions">
+        <div class="wishlist-budget-total" id="wishlist-budget-total" hidden>
+          <span class="wishlist-budget-total__label">Budget total</span>
+          <span class="wishlist-budget-total__value" id="wishlist-budget-total-value">0,00 €</span>
+        </div>
+        <button class="btn btn--primary" id="btn-add-wishlist-item" type="button">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+          Ajouter une envie
+        </button>
+      </div>
+    </div>
+
+    <div class="library-toolbar" style="margin-top:-10px;">
+      <div class="toolbar-tabs" role="tablist" id="wishlist-type-tabs">
+        <button class="toolbar-tab is-active" data-wishlist-type="all" type="button" role="tab" aria-selected="true">Tout</button>
+        <button class="toolbar-tab" data-wishlist-type="book" type="button" role="tab" aria-selected="false">Livres</button>
+        <button class="toolbar-tab" data-wishlist-type="gear" type="button" role="tab" aria-selected="false">Matos</button>
+      </div>
+      <div class="sort-field">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 13 21l-9-9 7.6-7.6a2 2 0 0 1 1.4-.6H19a1 1 0 0 1 1 1v5.2a2 2 0 0 1-.6 1.4Z"/><circle cx="15.5" cy="8.5" r="1.2"/></svg>
+        <select id="wishlist-tag-filter">
+          <option value="">Toutes les étiquettes</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="wishlist-grid" class="wishlist-grid">
+      <!-- Cartes générées dynamiquement -->
+    </div>
+
+    <div class="empty-state" id="wishlist-empty-state" hidden>
+      <svg class="empty-state__icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 54s-20-12-24-26C5 18 9 8 19 8c6 0 11 4 13 8 2-4 7-8 13-8 10 0 14 10 11 20-4 14-24 26-24 26Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+      </svg>
+      <h2 class="empty-state__title">Ta wishlist est vide</h2>
+      <p class="empty-state__text">Ajoute les livres et le matériel que tu rêves d'obtenir un jour.</p>
+      <button class="btn btn--primary" id="btn-add-wishlist-item-empty" type="button">Ajouter une envie</button>
+    </div>
+
+  </main>
+
+  <!-- ===== VUE BIBLIOTHÈQUE DE CHALLENGES ===== -->
+  <main class="view view-challenges" id="view-challenges" hidden>
+
+    <button class="back-link" id="btn-back-from-challenges" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour à la bibliothèque
+    </button>
+
+    <div class="library-toolbar">
+      <div>
+        <h1 class="tag-search__title" style="margin-bottom:4px;">Mes challenges</h1>
+        <p class="tag-search__hint" style="margin-bottom:0;">Des petits défis de coloriage à ton rythme, suivis pas à pas.</p>
+      </div>
+      <button class="btn btn--primary" id="btn-add-challenge" type="button">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+        Nouveau challenge
+      </button>
+    </div>
+
+    <div id="challenges-container" class="challenges-container">
+      <!-- Sections générées dynamiquement -->
+    </div>
+
+    <div class="empty-state" id="challenges-empty-state" hidden>
+      <svg class="empty-state__icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 8h32v8a16 16 0 0 1-32 0V8Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M24 48h16M32 40v8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M16 12H9a2 2 0 0 0-2 2v2a8 8 0 0 0 8 8M48 12h7a2 2 0 0 1 2 2v2a8 8 0 0 1-8 8" stroke="currentColor" stroke-width="2.5"/>
+      </svg>
+      <h2 class="empty-state__title">Aucun challenge pour le moment</h2>
+      <p class="empty-state__text">Crée ton premier défi de coloriage : un titre, une consigne, quelques cases à cocher.</p>
+      <button class="btn btn--primary" id="btn-add-challenge-empty" type="button">Nouveau challenge</button>
+    </div>
+
+  </main>
+
+  <!-- ===== VUE FICHE DÉTAILLÉE D'UN CHALLENGE ===== -->
+  <main class="view view-challenge-detail" id="view-challenge-detail" hidden>
+
+    <button class="back-link" id="btn-back-from-challenge-detail" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour aux challenges
+    </button>
+
+    <div class="book-detail-header">
+      <div class="book-detail-header__cover" id="challenge-detail-cover"></div>
+
+      <div class="book-detail-header__info">
+        <div class="book-detail-header__top">
+          <div>
+            <h1 class="book-detail-header__title" id="challenge-detail-title"></h1>
+            <p class="book-detail-header__author" id="challenge-detail-dates"></p>
+          </div>
+          <div class="book-detail-header__actions">
+            <button class="icon-btn" id="btn-edit-challenge" type="button" title="Modifier ce challenge" aria-label="Modifier ce challenge">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <p class="book-detail-header__notes" id="challenge-detail-instructions" hidden></p>
+
+        <div class="book-detail-header__stats">
+          <div class="stat-chip">
+            <span class="stat-chip__value" id="challenge-detail-checked-count">0</span>
+            <span class="stat-chip__label">/ <span id="challenge-detail-total-items">0</span> cases cochées</span>
+          </div>
+          <div class="stat-chip" id="challenge-detail-year-chip" hidden>
+            <span class="stat-chip__value" id="challenge-detail-year"></span>
+            <span class="stat-chip__label">année</span>
+          </div>
+        </div>
+
+        <div class="challenge-status-row">
+          <div class="status-select" id="challenge-status-select">
+            <button type="button" class="status-option" data-status="todo">À entamer</button>
+            <button type="button" class="status-option" data-status="in_progress">En cours de réalisation</button>
+            <button type="button" class="status-option" data-status="abandoned">Abandonné</button>
+            <button type="button" class="status-option" data-status="done">Terminé</button>
+          </div>
+          <label class="prize-checkbox" id="prize-checkbox-wrap" hidden>
+            <input type="checkbox" id="input-prize-won">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"/><path d="M9 14.5 7 22l5-3 5 3-2-7.5"/></svg>
+            Prix remporté
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="book-detail-toolbar">
+      <h2 class="book-detail-toolbar__title">Cases à cocher</h2>
+      <div class="view-mode-switch" id="challenge-view-switch" role="tablist" aria-label="Mode d'affichage des cases">
+        <button class="view-mode-switch__option is-active" data-challenge-view-mode="list" type="button" role="tab" aria-selected="true">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+          Liste
+        </button>
+        <button class="view-mode-switch__option" data-challenge-view-mode="bingo" type="button" role="tab" aria-selected="false">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Bingo
+        </button>
+      </div>
+      <button class="btn btn--secondary" id="btn-add-challenge-item" type="button">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+        Ajouter une case
+      </button>
+    </div>
+
+    <div class="challenge-items-list" id="challenge-items-list">
+      <!-- Cases générées dynamiquement (vue Liste) -->
+    </div>
+
+    <button class="btn btn--secondary" id="btn-add-challenge-item-bottom" type="button" style="margin-top:14px;">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+      Ajouter une case
+    </button>
+
+    <div class="challenge-bingo-grid" id="challenge-bingo-grid" hidden>
+      <!-- Cases générées dynamiquement (vue Bingo) -->
+    </div>
+
+  </main>
+
+  <!-- ===== MODALE : AJOUTER / MODIFIER UN LIVRE ===== -->
+  <div class="modal-overlay" id="modal-book" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-book-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-book-title">Ajouter un livre</h2>
+        <button class="icon-btn" id="btn-close-modal-book" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="form-book" class="modal__body">
+        <div class="form-row form-row--cover">
+          <label class="cover-uploader" id="cover-uploader" for="input-cover">
+            <img id="cover-preview" alt="" hidden>
+            <span class="cover-uploader__placeholder">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              <span>Ajouter une couverture</span>
+            </span>
+            <input type="file" id="input-cover" accept="image/*" hidden>
+          </label>
+          <button type="button" class="link-btn" id="btn-remove-cover" hidden>Retirer l'image</button>
+        </div>
+
+        <div class="form-row">
+          <label for="input-title">Titre du livre <span class="required">*</span></label>
+          <input type="text" id="input-title" required placeholder="Ex. Mandalas zen, vol. 2" maxlength="120">
+        </div>
+
+        <div class="form-row form-row--split">
+          <div>
+            <label for="input-author">Auteur / collection</label>
+            <input type="text" id="input-author" placeholder="Optionnel" maxlength="120">
+          </div>
+          <div>
+            <label for="input-pages">Nombre de pages <span class="required">*</span></label>
+            <input type="number" id="input-pages" required min="1" max="2000" placeholder="Ex. 96">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="input-purchase-year">Année d'achat</label>
+          <input type="number" id="input-purchase-year" placeholder="Optionnel — ex. 2022" min="1990" max="2100" step="1">
+        </div>
+
+        <div class="form-row">
+          <label for="select-book-type">Type de livre</label>
+          <div class="book-type-select-row">
+            <select id="select-book-type">
+              <option value="">Aucun (Livre de coloriage)</option>
+              <!-- Types personnalisés générés dynamiquement -->
+            </select>
+            <button type="button" class="icon-btn" id="btn-add-book-type" title="Créer un nouveau type" aria-label="Créer un nouveau type de livre">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+            <button type="button" class="icon-btn" id="btn-delete-book-type" title="Supprimer ce type" aria-label="Supprimer ce type de livre" hidden>
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke="var(--accent-danger)"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="input-book-tags">Étiquettes</label>
+          <div class="tag-input" id="book-tag-input">
+            <div class="tag-input__chips" id="book-tag-chips"></div>
+            <input type="text" id="input-book-tags" placeholder="Ex. Disney, Mystère… puis Entrée" autocomplete="off">
+          </div>
+          <div class="tag-suggestions" id="book-tag-suggestions" hidden></div>
+        </div>
+
+        <div class="form-row">
+          <label for="input-notes">Notes</label>
+          <textarea id="input-notes" placeholder="Optionnel — thème, format, où tu l'as acheté…" maxlength="500" rows="2"></textarea>
+        </div>
+
+        <p class="form-hint" id="pages-warning" hidden></p>
+
+        <div class="form-row book-active-toggle-row">
+          <label class="tag-multi-toggle" for="toggle-book-active">
+            <input type="checkbox" id="toggle-book-active" checked>
+            <span class="tag-multi-toggle__track"><span class="tag-multi-toggle__thumb"></span></span>
+            <span class="tag-multi-toggle__label">Compter dans les stats, badges et carrousel</span>
+          </label>
+          <p class="form-hint" style="margin-top:2px;">Si désactivé, ce livre est exclu des statistiques, des badges et du carrousel photo.</p>
+        </div>
+      </form>
+
+      <div class="modal__footer">
+        <button type="button" class="btn btn--ghost" id="btn-delete-book" hidden>Supprimer le livre</button>
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-book">Annuler</button>
+        <button type="submit" form="form-book" class="btn btn--primary" id="btn-save-book">Ajouter à la bibliothèque</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : CONFIRMATION ===== -->
+  <div class="modal-overlay" id="modal-confirm" hidden>
+    <div class="modal modal--small" role="alertdialog" aria-modal="true" aria-labelledby="modal-confirm-title">
+      <div class="modal__body modal__body--confirm">
+        <h2 class="modal__title" id="modal-confirm-title">Confirmer l'action</h2>
+        <p id="modal-confirm-text"></p>
+      </div>
+      <div class="modal__footer">
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-confirm-cancel">Annuler</button>
+        <button type="button" class="btn btn--danger" id="btn-confirm-ok">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : LÉGENDE DES ANNÉES ===== -->
+  <div class="modal-overlay" id="modal-legend" hidden>
+    <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="modal-legend-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-legend-title">Légende des années</h2>
+        <button class="icon-btn" id="btn-close-modal-legend" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="legend-list" id="legend-list">
+          <!-- Lignes générées dynamiquement -->
+        </div>
+        <div class="legend-add-row">
+          <input type="number" id="input-new-year" placeholder="Ajouter une année — ex. 2026" min="1990" max="2100" step="1">
+          <button type="button" class="btn btn--secondary" id="btn-add-year">Ajouter</button>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--primary" id="btn-close-legend-footer">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : AJOUTER / MODIFIER UN OBJET DE LA TROUSSE ===== -->
+  <div class="modal-overlay" id="modal-gear-item" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-gear-item-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-gear-item-title">Nouveau matériel</h2>
+        <button class="icon-btn" id="btn-close-modal-gear-item" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="form-gear-item" class="modal__body">
+        <div class="form-row">
+          <label>Type</label>
+          <div class="toolbar-tabs" id="gear-item-type-tabs">
+            <button type="button" class="toolbar-tab is-active" data-gear-item-type="simple">Matériel simple</button>
+            <button type="button" class="toolbar-tab" data-gear-item-type="box">Boîte (feutres/crayons)</button>
+          </div>
+        </div>
+
+        <div class="form-row form-row--cover">
+          <label class="cover-uploader" id="gear-item-cover-uploader" for="input-gear-item-image">
+            <img id="gear-item-cover-preview" alt="" hidden>
+            <span class="cover-uploader__placeholder">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              <span>Ajouter une image</span>
+            </span>
+            <input type="file" id="input-gear-item-image" accept="image/*" hidden>
+          </label>
+          <button type="button" class="link-btn" id="btn-remove-gear-item-image" hidden>Retirer l'image</button>
+        </div>
+
+        <div class="form-row">
+          <label for="input-gear-item-title">Titre <span class="required">*</span></label>
+          <input type="text" id="input-gear-item-title" required placeholder="Ex. Feutres ProMarker 72 couleurs" maxlength="120">
+        </div>
+
+        <div class="form-row--split">
+          <div class="form-row">
+            <label for="input-gear-item-brand">Marque</label>
+            <input type="text" id="input-gear-item-brand" placeholder="Ex. Copic, ProMarker…" maxlength="60">
+          </div>
+          <div class="form-row">
+            <label for="select-gear-item-medium">Médium <button type="button" class="link-btn" id="btn-manage-gear-mediums-inline" style="margin-left:8px; font-size:11px;">Gérer…</button></label>
+            <select id="select-gear-item-medium" class="select-field">
+              <option value="">Aucun</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>Catégories</label>
+          <div id="gear-item-category-checkboxes" class="tag-category-checkboxes-row">
+            <!-- Cases à cocher générées dynamiquement -->
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="input-gear-item-notes">Notes</label>
+          <textarea id="input-gear-item-notes" placeholder="Optionnel" maxlength="500" rows="2"></textarea>
+        </div>
+
+        <div class="form-row" id="gear-item-units-row" hidden>
+          <label>Couleurs / unités initiales</label>
+          <div class="gear-unit-editor-list" id="gear-item-units-editor"></div>
+          <button type="button" class="link-btn" id="btn-add-unit-in-form">+ Ajouter une couleur</button>
+        </div>
+
+        <p class="form-hint" id="gear-item-warning" hidden></p>
+      </form>
+
+      <div class="modal__footer">
+        <button type="button" class="btn btn--ghost" id="btn-delete-gear-item" hidden>Supprimer</button>
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-gear-item">Annuler</button>
+        <button type="submit" form="form-gear-item" class="btn btn--primary" id="btn-save-gear-item">Ajouter à ma trousse</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : GESTION DES CATÉGORIES DE MATÉRIEL ===== -->
+  <div class="modal-overlay" id="modal-manage-gear-categories" hidden>
+    <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="modal-manage-gear-categories-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-manage-gear-categories-title">Gérer mes catégories de matériel</h2>
+        <button class="icon-btn" id="btn-close-modal-manage-gear-categories" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="legend-list" id="manage-gear-categories-list"></div>
+        <div class="legend-add-row">
+          <input type="text" id="input-new-gear-category" placeholder="Nouvelle catégorie — ex. Feutres">
+          <button type="button" class="btn btn--secondary" id="btn-add-gear-category">Ajouter</button>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--primary" id="btn-close-manage-gear-categories-footer">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : GESTION DES MÉDIUMS DE MATÉRIEL ===== -->
+  <div class="modal-overlay" id="modal-manage-gear-mediums" hidden>
+    <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="modal-manage-gear-mediums-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-manage-gear-mediums-title">Gérer mes médiums</h2>
+        <button class="icon-btn" id="btn-close-modal-manage-gear-mediums" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <p class="form-hint" style="color:var(--ink-faint); background:var(--paper-soft);">Ex. Feutre, Feutre acrylique, Crayon, Crayon aquarellable, Marqueur…</p>
+        <div class="legend-list" id="manage-gear-mediums-list"></div>
+        <div class="legend-add-row">
+          <input type="text" id="input-new-gear-medium" placeholder="Nouveau médium — ex. Feutre acrylique">
+          <button type="button" class="btn btn--secondary" id="btn-add-gear-medium">Ajouter</button>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--primary" id="btn-close-manage-gear-mediums-footer">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ===== MODALE : AJOUTER / MODIFIER UN COMBO ===== -->
+  <div class="modal-overlay" id="modal-combo" hidden>
+    <div class="modal modal--large" role="dialog" aria-modal="true" aria-labelledby="modal-combo-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-combo-title">Nouveau combo</h2>
+        <button class="icon-btn" id="btn-close-modal-combo" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="form-combo" class="modal__body">
+        <div class="form-row">
+          <label>Photo(s) <span class="required">*</span></label>
+          <div class="combo-photo-grid" id="combo-photo-grid">
+            <!-- Vignettes de photos générées dynamiquement -->
+          </div>
+          <label class="link-btn" for="input-combo-images" style="cursor:pointer; display:inline-block;">+ Ajouter une photo</label>
+          <input type="file" id="input-combo-images" accept="image/*" multiple hidden>
+        </div>
+
+        <div class="form-row">
+          <label for="input-combo-title">Titre (facultatif)</label>
+          <input type="text" id="input-combo-title" placeholder="Ex. Peau claire ensoleillée" maxlength="120">
+        </div>
+
+        <div class="form-row">
+          <label for="input-combo-link">Lien (facultatif)</label>
+          <input type="url" id="input-combo-link" placeholder="https://…" maxlength="500">
+        </div>
+
+        <div class="form-row">
+          <label>Catégories <button type="button" class="link-btn" id="btn-manage-combo-categories-inline" style="margin-left:8px; font-size:11px;">Gérer…</button></label>
+          <div id="combo-category-checkboxes" class="tag-category-checkboxes-row">
+            <!-- Cases à cocher générées dynamiquement -->
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>Couleurs assignées</label>
+          <div class="combo-colors-editor" id="combo-colors-editor">
+            <!-- Lignes de couleur assignée, générées dynamiquement -->
+          </div>
+          <button type="button" class="link-btn" id="btn-add-combo-color">+ Assigner une couleur depuis la trousse</button>
+        </div>
+
+        <p class="form-hint" id="combo-warning" hidden></p>
+      </form>
+
+      <div class="modal__footer">
+        <button type="button" class="btn btn--ghost" id="btn-delete-combo" hidden>Supprimer</button>
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-combo">Annuler</button>
+        <button type="submit" form="form-combo" class="btn btn--primary" id="btn-save-combo">Créer le combo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : CADRAGE PHOTO D'UNE DOUBLE PAGE ===== -->
+  <div class="modal-overlay" id="modal-merged-photo-crop" hidden>
+    <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="modal-merged-photo-crop-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-merged-photo-crop-title">Cadrer la photo</h2>
+        <button class="icon-btn" id="btn-close-modal-merged-photo-crop" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <p class="form-hint" style="color:var(--ink-faint); background:var(--paper-soft);">Glisse la photo pour choisir quelle partie s'affiche dans la case.</p>
+        <div class="merged-photo-crop-frame" id="merged-photo-crop-frame">
+          <img id="merged-photo-crop-img" alt="" draggable="false">
+        </div>
+        <input type="range" id="merged-photo-crop-slider" min="-50" max="50" value="0" step="1" style="width:100%; margin-top:14px;">
+      </div>
+      <div class="modal__footer">
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-merged-photo-crop">Annuler</button>
+        <button type="button" class="btn btn--primary" id="btn-save-merged-photo-crop">Valider</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : CHOISIR UNE COULEUR DEPUIS LA TROUSSE ===== -->
+  <div class="modal-overlay" id="modal-pick-gear-color" hidden>
+    <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="modal-pick-gear-color-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-pick-gear-color-title">Choisir une couleur</h2>
+        <button class="icon-btn" id="btn-close-modal-pick-gear-color" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="form-row">
+          <input type="text" id="pick-gear-color-search" placeholder="Rechercher une boîte ou une couleur…" autocomplete="off">
+        </div>
+        <div id="pick-gear-color-results" class="pick-gear-color-results">
+          <!-- Résultats générés dynamiquement -->
+        </div>
+      </div>
+      <div class="modal__footer">
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-pick-gear-color">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : GESTION DES CATÉGORIES DE COMBO ===== -->
+  <div class="modal-overlay" id="modal-manage-combo-categories" hidden>
+    <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="modal-manage-combo-categories-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-manage-combo-categories-title">Gérer mes catégories de combo</h2>
+        <button class="icon-btn" id="btn-close-modal-manage-combo-categories" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="legend-list" id="manage-combo-categories-list"></div>
+        <div class="legend-add-row">
+          <input type="text" id="input-new-combo-category" placeholder="Nouvelle catégorie — ex. Peau">
+          <button type="button" class="btn btn--secondary" id="btn-add-combo-category">Ajouter</button>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--primary" id="btn-close-manage-combo-categories-footer">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : NOUVEAU PERSONNAGE ===== -->
+  <div class="modal-overlay" id="modal-character" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-character-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-character-title">Nouveau personnage</h2>
+        <button class="icon-btn" id="btn-close-modal-character" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="form-character" class="modal__body">
+        <div class="form-row">
+          <label for="input-character-title">Titre <span class="required">*</span></label>
+          <input type="text" id="input-character-title" required placeholder="Ex. Elsa" maxlength="120">
+        </div>
+
+        <div class="form-row">
+          <label>Photo <span class="required">*</span></label>
+          <div class="combo-photo-grid" id="character-photo-grid"></div>
+          <label class="link-btn" for="input-character-image" style="cursor:pointer; display:inline-block;">+ Ajouter une photo</label>
+          <input type="file" id="input-character-image" accept="image/*" hidden>
+        </div>
+
+        <div class="form-row">
+          <label>Catégorie(s) <button type="button" class="link-btn" id="btn-manage-character-cats-inline" style="margin-left:8px;font-size:11px;">Gérer…</button></label>
+          <div class="combo-category-checkboxes" id="character-category-checkboxes"></div>
+        </div>
+
+        <p class="form-hint" id="character-warning" hidden></p>
+      </form>
+
+      <div class="modal__footer">
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-character">Annuler</button>
+        <button type="submit" form="form-character" class="btn btn--primary" id="btn-save-character">Créer le personnage</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : ÉDITER UN REPÈRE (label + couleur) ===== -->
+  <div class="modal-overlay" id="modal-character-marker" hidden>
+    <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="modal-character-marker-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-character-marker-title">Nouveau repère</h2>
+        <button class="icon-btn" id="btn-close-modal-character-marker" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="form-row">
+          <label for="input-character-marker-label">Numéro / nom</label>
+          <input type="text" id="input-character-marker-label" placeholder="Ex. 1, ou « Cheveux »" maxlength="40">
+        </div>
+        <div class="form-row">
+          <label>Couleur</label>
+          <div id="character-marker-color-display" class="combo-color-editor-row" style="cursor:pointer;">
+            <span class="combo-color-editor-row__swatch" id="character-marker-swatch"></span>
+            <span class="combo-color-editor-row__label" id="character-marker-color-label">Aucune couleur choisie</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--ghost" id="btn-delete-character-marker">Supprimer ce repère</button>
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-character-marker">Annuler</button>
+        <button type="button" class="btn btn--primary" id="btn-save-character-marker">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ===== MODALE : AJOUTER / MODIFIER UN ITEM DE WISHLIST ===== -->
+  <div class="modal-overlay" id="modal-wishlist-item" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-wishlist-item-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-wishlist-item-title">Nouvelle envie</h2>
+        <button class="icon-btn" id="btn-close-modal-wishlist-item" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="form-wishlist-item" class="modal__body">
+        <div class="form-row">
+          <label>Type</label>
+          <div class="toolbar-tabs" id="wishlist-item-type-tabs">
+            <button type="button" class="toolbar-tab is-active" data-wishlist-item-type="book">Livre</button>
+            <button type="button" class="toolbar-tab" data-wishlist-item-type="gear">Matos</button>
+          </div>
+        </div>
+
+        <div class="form-row form-row--cover">
+          <label class="cover-uploader" id="wishlist-item-cover-uploader" for="input-wishlist-item-image">
+            <img id="wishlist-item-cover-preview" alt="" hidden>
+            <span class="cover-uploader__placeholder">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              <span>Ajouter une image</span>
+            </span>
+            <input type="file" id="input-wishlist-item-image" accept="image/*" hidden>
+          </label>
+          <button type="button" class="link-btn" id="btn-remove-wishlist-item-image" hidden>Retirer l'image</button>
+        </div>
+
+        <div class="form-row">
+          <label for="input-wishlist-item-title">Titre <span class="required">*</span></label>
+          <input type="text" id="input-wishlist-item-title" required placeholder="Ex. Coffret 72 feutres ProMarker" maxlength="120">
+        </div>
+
+        <div class="form-row">
+          <label for="input-wishlist-item-link">Lien (facultatif)</label>
+          <input type="text" id="input-wishlist-item-link" placeholder="https://… — clique sur l'image pour l'ouvrir">
+        </div>
+
+        <div class="form-row">
+          <label for="input-wishlist-item-price">Prix estimé (facultatif)</label>
+          <div class="price-input">
+            <input type="number" id="input-wishlist-item-price" placeholder="0,00" min="0" step="0.01" inputmode="decimal">
+            <span class="price-input__suffix">€</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>Envie</label>
+          <div class="star-rating" id="wishlist-item-star-rating">
+            <button type="button" class="star-rating__star" data-star="1">★</button>
+            <button type="button" class="star-rating__star" data-star="2">★</button>
+            <button type="button" class="star-rating__star" data-star="3">★</button>
+            <button type="button" class="star-rating__star" data-star="4">★</button>
+            <button type="button" class="star-rating__star" data-star="5">★</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="input-wishlist-item-tags">Étiquettes</label>
+          <div class="tag-input" id="wishlist-item-tag-input">
+            <div class="tag-input__chips" id="wishlist-item-tag-chips"></div>
+            <input type="text" id="input-wishlist-item-tags" placeholder="Ex. Feutres, Disney… puis Entrée" autocomplete="off">
+          </div>
+          <div class="tag-suggestions" id="wishlist-item-tag-suggestions" hidden></div>
+        </div>
+
+        <p class="form-hint" id="wishlist-item-warning" hidden></p>
+      </form>
+
+      <div class="modal__footer">
+        <button type="button" class="btn btn--ghost" id="btn-delete-wishlist-item" hidden>Supprimer</button>
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-wishlist-item">Annuler</button>
+        <button type="submit" form="form-wishlist-item" class="btn btn--primary" id="btn-save-wishlist-item">Ajouter à ma wishlist</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : AJOUTER / MODIFIER UN CHALLENGE ===== -->
+  <div class="modal-overlay" id="modal-challenge" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-challenge-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-challenge-title">Nouveau challenge</h2>
+        <button class="icon-btn" id="btn-close-modal-challenge" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="form-challenge" class="modal__body">
+        <div class="form-row form-row--cover">
+          <label class="cover-uploader" id="challenge-cover-uploader" for="input-challenge-cover">
+            <img id="challenge-cover-preview" alt="" hidden>
+            <span class="cover-uploader__placeholder">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              <span>Ajouter une couverture</span>
+            </span>
+            <input type="file" id="input-challenge-cover" accept="image/*" hidden>
+          </label>
+          <button type="button" class="link-btn" id="btn-remove-challenge-cover" hidden>Retirer l'image</button>
+        </div>
+
+        <div class="form-row">
+          <label for="input-challenge-title">Titre du challenge <span class="required">*</span></label>
+          <input type="text" id="input-challenge-title" required placeholder="Ex. Mandala arc-en-ciel" maxlength="120">
+        </div>
+
+        <div class="form-row">
+          <label for="input-challenge-instructions">Consigne</label>
+          <textarea id="input-challenge-instructions" placeholder="Optionnel — la règle du défi, le thème…" maxlength="1000" rows="4" style="white-space:pre-wrap;"></textarea>
+        </div>
+
+        <div class="form-row">
+          <label for="input-challenge-prize">Lot à gagner (facultatif)</label>
+          <input type="text" id="input-challenge-prize" placeholder="Ex. Tome à 15€, livre Disney…" maxlength="200">
+        </div>
+
+        <div class="form-row form-row--split">
+          <div>
+            <label for="input-challenge-start">Date de début</label>
+            <input type="date" id="input-challenge-start">
+          </div>
+          <div>
+            <label for="input-challenge-end">Date de fin</label>
+            <input type="date" id="input-challenge-end">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="input-challenge-year">Année</label>
+          <input type="number" id="input-challenge-year" placeholder="Ex. 2026" min="1990" max="2100" step="1">
+        </div>
+
+        <div class="form-row">
+          <label>Cases à cocher</label>
+          <button type="button" class="link-btn" id="btn-add-item-in-form-top">+ Ajouter une case</button>
+          <div class="challenge-items-editor" id="challenge-items-editor">
+            <!-- Lignes générées dynamiquement -->
+          </div>
+          <button type="button" class="link-btn" id="btn-add-item-in-form">+ Ajouter une case</button>
+        </div>
+
+        <p class="form-hint" id="challenge-warning" hidden></p>
+      </form>
+
+      <div class="modal__footer">
+        <button type="button" class="btn btn--ghost" id="btn-delete-challenge" hidden>Supprimer le challenge</button>
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-challenge">Annuler</button>
+        <button type="submit" form="form-challenge" class="btn btn--primary" id="btn-save-challenge">Créer le challenge</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : CONFIRMATION D'IMPORT ===== -->
+  <div class="modal-overlay" id="modal-import-confirm" hidden>
+    <div class="modal modal--small" role="alertdialog" aria-modal="true" aria-labelledby="modal-import-confirm-title">
+      <div class="modal__body modal__body--confirm">
+        <h2 class="modal__title" id="modal-import-confirm-title">Remplacer toutes les données ?</h2>
+        <p>Ce fichier contient <strong id="import-summary-text"></strong>. L'import va <strong>définitivement remplacer</strong> tout ce qui est actuellement dans ta bibliothèque (livres, pages coloriées, étiquettes, challenges). Cette action est irréversible.</p>
+        <p class="form-hint">Pense à exporter ta bibliothèque actuelle d'abord si tu n'es pas sûr·e.</p>
+      </div>
+      <div class="modal__footer">
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-import">Annuler</button>
+        <button type="button" class="btn btn--danger" id="btn-confirm-import">Remplacer mes données</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : LIER UNE CASE À UNE PAGE DE LIVRE ===== -->
+  <div class="modal-overlay" id="modal-link-page" hidden>
+    <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="modal-link-page-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-link-page-title">Lier à une page</h2>
+        <button class="icon-btn" id="btn-close-modal-link-page" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="toolbar-tabs" id="link-page-mode-tabs" style="align-self:flex-start;">
+          <button type="button" class="toolbar-tab is-active" data-link-mode="manual">Livre + page</button>
+          <button type="button" class="toolbar-tab" data-link-mode="tag">Par étiquette</button>
+        </div>
+
+        <div id="link-page-manual-fields">
+          <div class="form-row">
+            <label for="link-page-book-select">Livre</label>
+            <select id="link-page-book-select" class="select-field"></select>
+          </div>
+          <div class="form-row">
+            <label for="link-page-number-input">Numéro de page</label>
+            <input type="number" id="link-page-number-input" min="1" placeholder="Ex. 12">
+          </div>
+        </div>
+
+        <div id="link-page-tag-fields" hidden>
+          <div class="form-row">
+            <label for="link-page-tag-input">Étiquette</label>
+            <input type="text" id="link-page-tag-input" placeholder="Ex. Raiponce…" autocomplete="off">
+          </div>
+          <div id="link-page-tag-results" class="tag-page-results">
+            <!-- Résultats générés dynamiquement -->
+          </div>
+        </div>
+
+        <p class="form-hint" id="link-page-warning" hidden></p>
+      </div>
+      <div class="modal__footer">
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-link-page">Annuler</button>
+        <button type="button" class="btn btn--primary" id="btn-confirm-link-page">Lier cette page</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : GESTION DES ÉTIQUETTES ===== -->
+  <div class="modal-overlay" id="modal-manage-tags" hidden>
+    <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="modal-manage-tags-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-manage-tags-title">Gérer mes étiquettes</h2>
+        <button class="icon-btn" id="btn-close-modal-manage-tags" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <p class="form-hint" style="color:var(--ink-faint); background:var(--paper-soft);">Range tes étiquettes par catégorie, et supprime-en une pour l'enlever de tous les livres et toutes les pages concernés.</p>
+        <div class="legend-list" id="manage-tags-list">
+          <!-- Lignes générées dynamiquement, organisées par catégorie -->
+        </div>
+        <div class="legend-add-row">
+          <input type="text" id="input-new-tag-category" placeholder="Nouvelle catégorie — ex. Personnages">
+          <button type="button" class="btn btn--secondary" id="btn-add-tag-category">Ajouter</button>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--primary" id="btn-close-manage-tags-footer">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : CATÉGORIES D'UNE ÉTIQUETTE ===== -->
+  <div class="modal-overlay" id="modal-tag-category-editor" hidden>
+    <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="tag-category-editor-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="tag-category-editor-title">Catégories</h2>
+        <button class="icon-btn" id="btn-close-tag-category-editor" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <p class="form-hint" style="color:var(--ink-faint); background:var(--paper-soft);">Une étiquette peut appartenir à plusieurs catégories à la fois.</p>
+        <div id="tag-category-editor-list">
+          <!-- Cases à cocher générées dynamiquement -->
+        </div>
+      </div>
+      <div class="modal__footer">
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-tag-category-editor">Annuler</button>
+        <button type="button" class="btn btn--primary" id="btn-save-tag-categories">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input caché pour l'import de la photo d'une page coloriée -->
+  <input type="file" id="input-page-photo" accept="image/*" hidden>
+
+  <!-- ===== MODALE : PHOTO SECONDAIRE (Duo/Trio) ===== -->
+  <div class="modal-overlay" id="modal-secondary-photo" hidden>
+    <div class="modal modal--small" role="dialog" aria-modal="true">
+      <div class="modal__header">
+        <h2 id="modal-secondary-photo-title">Photo de la 2e personne</h2>
+        <button class="icon-btn" id="btn-close-modal-secondary-photo" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="form-row">
+          <label for="input-secondary-person-name">Prénom de la personne</label>
+          <input type="text" id="input-secondary-person-name" placeholder="Ex. Léa">
+        </div>
+        <div class="form-row">
+          <label>Photo de son coloriage</label>
+          <div class="secondary-photo-preview-wrap">
+            <img id="secondary-photo-preview" hidden alt="Aperçu">
+            <button type="button" class="btn btn--secondary" id="btn-pick-secondary-photo">Choisir une image</button>
+          </div>
+          <input type="file" id="input-secondary-photo-file" accept="image/*" hidden>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--ghost" id="btn-remove-secondary-photo" hidden>Retirer cette photo</button>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-secondary-photo">Annuler</button>
+        <button type="button" class="btn btn--primary" id="btn-save-secondary-photo">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aperçu agrandi d'une photo de coloriage au survol (mode "Coloriages") -->
+  <div class="photo-zoom-overlay" id="photo-zoom-overlay" hidden>
+    <img id="photo-zoom-img" alt="">
+    <span class="photo-zoom-overlay__caption" id="photo-zoom-caption"></span>
+  </div>
+
+  <!-- ===== BULLE DE DIALOGUE DE LA MASCOTTE ===== -->
+  <div class="pencil-mascot__bubble" id="pencil-mascot-bubble" hidden>
+    <span id="pencil-mascot-bubble-text"></span>
+  </div>
+
+  <!-- ===== LIEN INSTAGRAM (toujours visible, couleur fixe non personnalisable) ===== -->
+  <a class="instagram-credit" href="https://www.instagram.com/lixia.colo/" target="_blank" rel="noopener noreferrer" title="@lixia.colo sur Instagram">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+    <span>@lixia.colo</span>
+  </a>
+
+  <!-- ===== MASCOTTE : CRAYON DE COULEUR ===== -->
+  <div class="pencil-mascot" id="pencil-mascot" title="Salut !">
+    <svg id="pencil-mascot-svg" viewBox="0 0 64 140" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="32" cy="134" rx="20" ry="4" fill="rgba(0,0,0,0.12)" />
+      <g id="pencil-mascot-body">
+        <!-- Corps hexagonal du crayon -->
+        <path d="M14 28 L50 28 L50 112 L32 128 L14 112 Z" fill="#E8A857" stroke="#B5752F" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M14 28 L50 28 L50 36 L14 36 Z" fill="#F2C16B"/>
+        <!-- Facette latérale plus foncée pour le volume -->
+        <path d="M32 28 L50 28 L50 112 L32 128 Z" fill="#D89640" stroke="#B5752F" stroke-width="1.5" stroke-linejoin="round"/>
+        <!-- Bague argentée -->
+        <rect x="14" y="92" width="36" height="10" fill="#E3E6E8" stroke="#B7BCC0" stroke-width="1"/>
+        <rect x="32" y="92" width="18" height="10" fill="#C7CBCE"/>
+        <!-- Pointe taillée en bois -->
+        <path d="M14 112 L32 128 L50 112 L41 134 L23 134 Z" fill="#F0D9A8" stroke="#B5752F" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M32 128 L50 112 L41 134 L32 134Z" fill="#E0C28A"/>
+        <!-- Mine -->
+        <path d="M27 128 L32 138 L37 128 Z" fill="#3A3A3A"/>
+        <!-- Visage mignon sur le corps -->
+        <circle class="pencil-mascot__eye" cx="24" cy="56" r="2.6" fill="#2A2A2A"/>
+        <circle class="pencil-mascot__eye" cx="38" cy="56" r="2.6" fill="#2A2A2A"/>
+        <path class="pencil-mascot__mouth" d="M25 65 Q31 70 37 65" stroke="#2A2A2A" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </g>
+      <!-- Petit éclat scintillant occasionnel -->
+      <g id="pencil-mascot-sparkle" opacity="0">
+        <path d="M50 18 L52 24 L58 26 L52 28 L50 34 L48 28 L42 26 L48 24 Z" fill="#FFD76A"/>
+      </g>
+    </svg>
+  </div>
+
+  <!-- ===== MODALE : NOUVELLE PALETTE ===== -->
+  <div class="modal-overlay" id="modal-palette" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-palette-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-palette-title">Nouvelle palette</h2>
+        <button class="icon-btn" id="btn-close-modal-palette" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="form-palette" class="modal__body">
+        <div class="form-row form-row--cover">
+          <label class="cover-uploader" id="palette-cover-uploader" for="input-palette-photo">
+            <img id="palette-photo-preview" alt="" hidden>
+            <span class="cover-uploader__placeholder">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              <span>Photo de la palette</span>
+            </span>
+            <input type="file" id="input-palette-photo" accept="image/*" hidden>
+          </label>
+          <button type="button" class="link-btn" id="btn-remove-palette-photo" hidden>Retirer la photo</button>
+        </div>
+        <div class="form-row">
+          <label for="input-palette-name">Nom de la palette <span class="required">*</span></label>
+          <input type="text" id="input-palette-name" required placeholder="Ex. Automne forêt, Pastel doux…" maxlength="100">
+        </div>
+        <div class="form-row">
+          <label for="input-palette-notes">Notes (facultatif)</label>
+          <textarea id="input-palette-notes" placeholder="Marques utilisées, thème suggéré…" maxlength="300" rows="2"></textarea>
+        </div>
+        <div class="form-row">
+          <label>Catégorie(s) <button type="button" class="link-btn" id="btn-manage-palette-cats-inline" style="margin-left:8px;font-size:11px;">Gérer…</button></label>
+          <div class="combo-category-checkboxes" id="palette-category-checkboxes"></div>
+        </div>
+        <p class="form-warning" id="palette-warning" hidden></p>
+      </form>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--ghost" id="btn-delete-palette" hidden>Supprimer</button>
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-palette">Annuler</button>
+        <button type="submit" form="form-palette" class="btn btn--primary" id="btn-save-palette">Ajouter la palette</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : NOUVELLE TECHNIQUE / TUTO ===== -->
+  <div class="modal-overlay" id="modal-technique" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-technique-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-technique-title">Ajouter</h2>
+        <button class="icon-btn" id="btn-close-modal-technique" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="form-technique" class="modal__body">
+        <div class="form-row">
+          <label>Type</label>
+          <div class="technique-type-toggle" role="group">
+            <button type="button" class="technique-type-btn is-active" data-type="link">🔗 Lien / tuto</button>
+            <button type="button" class="technique-type-btn" data-type="note">📝 Note libre</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="input-technique-title">Titre <span class="required">*</span></label>
+          <input type="text" id="input-technique-title" required placeholder="Ex. Technique du fondu, Tuto aquarelle…" maxlength="120">
+        </div>
+        <div id="technique-link-fields">
+          <div class="form-row">
+            <label for="input-technique-url">URL</label>
+            <input type="url" id="input-technique-url" placeholder="https://youtube.com/…">
+          </div>
+        </div>
+        <div id="technique-note-fields" hidden>
+          <div class="form-row">
+            <label for="input-technique-content">Contenu</label>
+            <textarea id="input-technique-content" placeholder="Ta note, astuce, mémo technique…" maxlength="2000" rows="5"></textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Catégorie(s) <button type="button" class="link-btn" id="btn-manage-technique-cats-inline" style="margin-left:8px;font-size:11px;">Gérer…</button></label>
+          <div class="combo-category-checkboxes" id="technique-category-checkboxes"></div>
+        </div>
+        <p class="form-warning" id="technique-warning" hidden></p>
+      </form>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--ghost" id="btn-delete-technique" hidden>Supprimer</button>
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-technique">Annuler</button>
+        <button type="submit" form="form-technique" class="btn btn--primary" id="btn-save-technique">Ajouter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : GESTION DES CATÉGORIES (Personnages / Palettes / Techniques) ===== -->
+  <div class="modal-overlay" id="modal-manage-generic-cats" hidden>
+    <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="modal-manage-generic-cats-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-manage-generic-cats-title">Gérer les catégories</h2>
+        <button class="icon-btn" id="btn-close-modal-generic-cats" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="legend-list" id="manage-generic-cats-list"></div>
+        <div class="legend-add-row">
+          <input type="text" id="input-new-generic-category" placeholder="Nouvelle catégorie…">
+          <button type="button" class="btn btn--secondary" id="btn-add-generic-category">Ajouter</button>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--primary" id="btn-close-generic-cats-footer">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODALE : CARTE POSTALE ===== -->
+  <div class="modal-overlay" id="modal-postcard" hidden>
+    <div class="modal modal--postcard" role="dialog" aria-modal="true" aria-labelledby="modal-postcard-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-postcard-title">Carte postale</h2>
+        <button class="icon-btn" id="btn-close-modal-postcard" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="postcard-editor">
+        <div class="postcard-sidebar">
+          <div class="form-row">
+            <label>Style</label>
+            <div class="postcard-style-btns">
+              <button type="button" class="postcard-opt-btn is-active" data-postcard-style="vintage">🏷️ Vintage</button>
+              <button type="button" class="postcard-opt-btn" data-postcard-style="modern">✦ Moderne</button>
+              <button type="button" class="postcard-opt-btn" data-postcard-style="polaroid">📸 Polaroid</button>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Format</label>
+            <div class="postcard-style-btns">
+              <button type="button" class="postcard-opt-btn is-active" data-postcard-format="square">⬛ Carré</button>
+              <button type="button" class="postcard-opt-btn" data-postcard-format="portrait">📱 Portrait</button>
+              <button type="button" class="postcard-opt-btn" data-postcard-format="landscape">🖥️ Paysage</button>
+            </div>
+          </div>
+          <div class="form-row" style="margin-top:12px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <label style="margin:0;">Blocs de texte</label>
+              <button type="button" class="btn btn--secondary btn--sm" id="btn-add-postcard-block">+ Ajouter</button>
+            </div>
+            <div id="postcard-blocks-list"></div>
+          </div>
+          <p class="form-hint" style="margin-top:8px;">Glisse un bloc sur l'aperçu pour le déplacer</p>
+        </div>
+        <div class="postcard-canvas-wrap" id="postcard-canvas-wrap">
+          <canvas id="postcard-canvas"></canvas>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-postcard">Annuler</button>
+        <button type="button" class="btn btn--primary" id="btn-download-postcard">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Télécharger
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== GLAÇON D'ÉTÉ (juin à août uniquement, ajouté dynamiquement) ===== -->
+
+  <!-- ===== TOASTS ===== -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
