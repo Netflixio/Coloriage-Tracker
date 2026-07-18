@@ -54,7 +54,7 @@
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4a1 1 0 0 0-1 1v1a4 4 0 0 0 4 4M17 5h3a1 1 0 0 1 1 1v1a4 4 0 0 1-4 4"/></svg>
       </button>
       <button class="icon-btn" id="btn-wishlist" type="button" title="Wishlist" aria-label="Voir ma wishlist">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17.3 6.2 21l1.6-6.8L2.5 9.7l7-.6L12 2.5l2.5 6.6 7 .6-5.3 4.5 1.6 6.8z"/></svg>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20.5s-7.5-4.6-10-9.3C.7 8.1 2.4 5 5.7 5c1.9 0 3.3 1 4.1 2.2.4.5.6.8 1.2.8s.8-.3 1.2-.8C13 6 14.4 5 16.3 5c3.3 0 5 3.1 3.7 6.2-2.5 4.7-10 9.3-10 9.3Z"/></svg>
       </button>
       <button class="icon-btn" id="btn-gear" type="button" title="Trousse à matos" aria-label="Voir ma trousse à matos">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16l-1.5 12.5a2 2 0 0 1-2 1.5H7.5a2 2 0 0 1-2-1.5L4 7Z"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M9 12h6"/></svg>
@@ -63,7 +63,7 @@
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><circle cx="12" cy="16" r="3"/></svg>
       </button>
       <button class="icon-btn icon-btn--notif-wrap" id="btn-favorites-gallery" type="button" title="Galerie" aria-label="Voir la galerie de mes coloriages">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20.5s-7.5-4.6-10-9.3C.7 8.1 2.4 5 5.7 5c1.9 0 3.3 1 4.1 2.2.4.5.6.8 1.2.8s.8-.3 1.2-.8C13 6 14.4 5 16.3 5c3.3 0 5 3.1 3.7 6.2-2.5 4.7-10 9.3-10 9.3Z"/></svg>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17.3 6.2 21l1.6-6.8L2.5 9.7l7-.6L12 2.5l2.5 6.6 7 .6-5.3 4.5 1.6 6.8z"/></svg>
         <span class="notif-dot" id="badge-notif-dot" hidden aria-hidden="true"></span>
         <span class="notif-dot notif-dot--mission" id="mission-notif-dot" hidden aria-hidden="true"></span>
       </button>
@@ -88,6 +88,10 @@
           <button type="button" class="dropdown-menu__item dropdown-menu__item--secondary" id="btn-reset-accent-color">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 2.6-6.4M3 4v5h5"/></svg>
             Couleur par défaut
+          </button>
+          <button type="button" class="dropdown-menu__item" id="btn-export-library-jpeg">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            Exporter ma bibliothèque (image)
           </button>
           <button type="button" class="dropdown-menu__item" id="btn-export-data">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
@@ -213,6 +217,10 @@
             <span class="stat-chip__value" id="book-detail-colored-count">0</span>
             <span class="stat-chip__label">/ <span id="book-detail-total-pages">0</span> pages coloriées</span>
           </div>
+          <div class="stat-chip" id="book-detail-colorings-chip">
+            <span class="stat-chip__value" id="book-detail-colorings-count">0</span>
+            <span class="stat-chip__label">/ <span id="book-detail-colorings-total">0</span> coloriages à réaliser</span>
+          </div>
           <div class="stat-chip">
             <span class="stat-chip__value" id="book-detail-percent">0%</span>
             <span class="stat-chip__label">d'avancement</span>
@@ -270,10 +278,13 @@
     <h1 class="tag-search__title">Recherche par étiquette</h1>
     <p class="tag-search__hint">Cherche un thème ou un personnage — par exemple « Raiponce » — parmi tous tes livres et toutes tes pages, coloriées ou non.</p>
 
-    <div class="search-field search-field--lg">
+    <div class="search-field search-field--lg" style="position:relative;">
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       <input type="text" id="tag-search-input" placeholder="Taper une étiquette…" autocomplete="off">
+      <div id="tag-search-autocomplete" class="link-page-tag-autocomplete" hidden></div>
     </div>
+
+    <div class="tag-search-selected" id="tag-search-selected" hidden></div>
 
     <label class="tag-multi-toggle" id="tag-multi-toggle">
       <input type="checkbox" id="checkbox-tag-multi" checked>
@@ -288,11 +299,7 @@
       <button class="link-btn link-btn--manage" id="btn-manage-tags" type="button">Gérer mes étiquettes</button>
     </div>
 
-    <div class="tag-search-selected" id="tag-search-selected" hidden></div>
-
-    <div id="tag-search-results">
-      <!-- Résultats générés dynamiquement -->
-    </div>
+    <div id="tag-search-results"></div>
 
   </main>
 
@@ -766,6 +773,19 @@
           <option value="">Toutes les étiquettes</option>
         </select>
       </div>
+      <div class="sort-field">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+        <select id="wishlist-sort">
+          <option value="desire">Par envie</option>
+          <option value="year-asc">Année ↑</option>
+          <option value="year-desc">Année ↓</option>
+        </select>
+      </div>
+      <div class="sort-field">
+        <select id="wishlist-year-filter">
+          <option value="">Toutes les années</option>
+        </select>
+      </div>
     </div>
 
     <div id="wishlist-grid" class="wishlist-grid">
@@ -791,30 +811,50 @@
       Retour à la bibliothèque
     </button>
 
-    <div class="library-toolbar">
-      <div>
-        <h1 class="tag-search__title" style="margin-bottom:4px;">Mes challenges</h1>
-        <p class="tag-search__hint" style="margin-bottom:0;">Des petits défis de coloriage à ton rythme, suivis pas à pas.</p>
+    <!-- Onglets Challenges / Duo -->
+    <div class="toolbar-tabs" role="tablist" style="margin-bottom:20px;">
+      <button class="toolbar-tab is-active" data-challenges-tab="challenges" type="button" role="tab">Challenges</button>
+      <button class="toolbar-tab" data-challenges-tab="duo" type="button" role="tab">💞 Duo</button>
+    </div>
+
+    <!-- Vue Challenges -->
+    <div id="challenges-tab-content">
+      <div class="library-toolbar">
+        <div>
+          <h1 class="tag-search__title" style="margin-bottom:4px;">Mes challenges</h1>
+          <p class="tag-search__hint" style="margin-bottom:0;">Des petits défis de coloriage à ton rythme, suivis pas à pas.</p>
+        </div>
+        <button class="btn btn--primary" id="btn-add-challenge" type="button">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+          Nouveau challenge
+        </button>
       </div>
-      <button class="btn btn--primary" id="btn-add-challenge" type="button">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
-        Nouveau challenge
-      </button>
+      <div id="challenges-container" class="challenges-container"></div>
+      <div class="empty-state" id="challenges-empty-state" hidden>
+        <svg class="empty-state__icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 8h32v8a16 16 0 0 1-32 0V8Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M24 48h16M32 40v8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M16 12H9a2 2 0 0 0-2 2v2a8 8 0 0 0 8 8M48 12h7a2 2 0 0 1 2 2v2a8 8 0 0 1-8 8" stroke="currentColor" stroke-width="2.5"/>
+        </svg>
+        <h2 class="empty-state__title">Aucun challenge pour le moment</h2>
+        <p class="empty-state__text">Crée ton premier défi de coloriage : un titre, une consigne, quelques cases à cocher.</p>
+        <button class="btn btn--primary" id="btn-add-challenge-empty" type="button">Nouveau challenge</button>
+      </div>
     </div>
 
-    <div id="challenges-container" class="challenges-container">
-      <!-- Sections générées dynamiquement -->
-    </div>
-
-    <div class="empty-state" id="challenges-empty-state" hidden>
-      <svg class="empty-state__icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M16 8h32v8a16 16 0 0 1-32 0V8Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
-        <path d="M24 48h16M32 40v8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M16 12H9a2 2 0 0 0-2 2v2a8 8 0 0 0 8 8M48 12h7a2 2 0 0 1 2 2v2a8 8 0 0 1-8 8" stroke="currentColor" stroke-width="2.5"/>
-      </svg>
-      <h2 class="empty-state__title">Aucun challenge pour le moment</h2>
-      <p class="empty-state__text">Crée ton premier défi de coloriage : un titre, une consigne, quelques cases à cocher.</p>
-      <button class="btn btn--primary" id="btn-add-challenge-empty" type="button">Nouveau challenge</button>
+    <!-- Vue Duo -->
+    <div id="duo-tab-content" hidden>
+      <div class="library-toolbar">
+        <div>
+          <h1 class="tag-search__title" style="margin-bottom:4px;">Mes colocopines 💞</h1>
+          <p class="tag-search__hint" style="margin-bottom:0;">Tes partenaires de coloriage en duo !</p>
+        </div>
+        <button class="btn btn--primary" id="btn-add-colocopine" type="button">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+          Nouvelle colocopine
+        </button>
+      </div>
+      <div id="colocopines-grid"></div>
     </div>
 
   </main>
@@ -962,6 +1002,7 @@
             <button type="button" class="icon-btn" id="btn-delete-book-type" title="Supprimer ce type" aria-label="Supprimer ce type de livre" hidden>
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke="var(--accent-danger)"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6"/></svg>
             </button>
+            <button type="button" class="btn btn--ghost btn--sm" id="btn-cleanup-book-types" title="Supprimer les types non utilisés">🧹</button>
           </div>
         </div>
 
@@ -1416,6 +1457,11 @@
         </div>
 
         <div class="form-row">
+          <label for="input-wishlist-item-year">Année d'ajout (facultatif)</label>
+          <input type="number" id="input-wishlist-item-year" placeholder="Ex. 2024" min="2000" max="2099" inputmode="numeric">
+        </div>
+
+        <div class="form-row">
           <label>Envie</label>
           <div class="star-rating" id="wishlist-item-star-rating">
             <button type="button" class="star-rating__star" data-star="1">★</button>
@@ -1481,8 +1527,24 @@
         </div>
 
         <div class="form-row">
-          <label for="input-challenge-prize">Lot à gagner (facultatif)</label>
-          <input type="text" id="input-challenge-prize" placeholder="Ex. Tome à 15€, livre Disney…" maxlength="200">
+          <label>Lots à gagner (facultatif)</label>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <input type="text" id="input-challenge-prize-1" placeholder="🥇 Lot 1…" maxlength="200">
+            <input type="text" id="input-challenge-prize-2" placeholder="🥈 Lot 2…" maxlength="200">
+            <input type="text" id="input-challenge-prize-3" placeholder="🥉 Lot 3…" maxlength="200">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="input-challenge-link">Lien externe (facultatif)</label>
+          <input type="url" id="input-challenge-link" placeholder="https://instagram.com/...">
+        </div>
+        <div class="form-row">
+          <label for="input-challenge-priority">Priorité</label>
+          <select id="input-challenge-priority">
+            <option value="0">Normale</option>
+            <option value="1">⭐ Haute</option>
+            <option value="2">🔥 Urgente</option>
+          </select>
         </div>
 
         <div class="form-row form-row--split">
@@ -1497,8 +1559,12 @@
         </div>
 
         <div class="form-row">
-          <label for="input-challenge-year">Année</label>
-          <input type="number" id="input-challenge-year" placeholder="Ex. 2026" min="1990" max="2100" step="1">
+          <label>Année(s)</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="number" id="input-challenge-year" placeholder="Début ex. 2025" min="1990" max="2100" step="1" style="flex:1;">
+            <span style="color:var(--ink-faint);font-size:13px;">→</span>
+            <input type="number" id="input-challenge-year-end" placeholder="Fin ex. 2026 (optionnel)" min="1990" max="2100" step="1" style="flex:1;">
+          </div>
         </div>
 
         <div class="form-row">
@@ -1540,7 +1606,7 @@
 
   <!-- ===== MODALE : LIER UNE CASE À UNE PAGE DE LIVRE ===== -->
   <div class="modal-overlay" id="modal-link-page" hidden>
-    <div class="modal modal--small" role="dialog" aria-modal="true" aria-labelledby="modal-link-page-title">
+    <div class="modal modal--small modal--link-page" role="dialog" aria-modal="true" aria-labelledby="modal-link-page-title">
       <div class="modal__header">
         <h2 class="modal__title" id="modal-link-page-title">Lier à une page</h2>
         <button class="icon-btn" id="btn-close-modal-link-page" type="button" aria-label="Fermer">
@@ -1551,12 +1617,14 @@
         <div class="toolbar-tabs" id="link-page-mode-tabs" style="align-self:flex-start;">
           <button type="button" class="toolbar-tab is-active" data-link-mode="manual">Livre + page</button>
           <button type="button" class="toolbar-tab" data-link-mode="tag">Par étiquette</button>
+          <button type="button" class="toolbar-tab" data-link-mode="unpublished">📷 Non postés</button>
         </div>
 
         <div id="link-page-manual-fields">
           <div class="form-row">
-            <label for="link-page-book-select">Livre</label>
-            <select id="link-page-book-select" class="select-field"></select>
+            <label>Livre</label>
+            <div id="link-page-book-groups" class="link-page-book-groups"></div>
+            <input type="hidden" id="link-page-book-select">
           </div>
           <div class="form-row">
             <label for="link-page-number-input">Numéro de page</label>
@@ -1565,13 +1633,23 @@
         </div>
 
         <div id="link-page-tag-fields" hidden>
-          <div class="form-row">
-            <label for="link-page-tag-input">Étiquette</label>
-            <input type="text" id="link-page-tag-input" placeholder="Ex. Raiponce…" autocomplete="off">
+          <p class="form-hint" style="margin-bottom:8px;">Sélectionne un ou plusieurs tags — seules les pages ayant TOUS ces tags apparaîtront.</p>
+          <!-- Barre de recherche avec autocomplétion -->
+          <div class="link-page-tag-search-wrap">
+            <input type="text" id="link-page-tag-search" placeholder="Taper pour chercher un tag… ex: Aladin" autocomplete="off">
+            <div id="link-page-tag-autocomplete" class="link-page-tag-autocomplete" hidden></div>
           </div>
-          <div id="link-page-tag-results" class="tag-page-results">
-            <!-- Résultats générés dynamiquement -->
-          </div>
+          <!-- Tags sélectionnés -->
+          <div id="link-page-tag-chips" class="tag-search-chips" style="margin:8px 0;"></div>
+          <!-- Catégories dépliables -->
+          <div id="link-page-tag-categories" class="link-page-tag-categories"></div>
+          <!-- Résultats -->
+          <div id="link-page-tag-results" class="tag-page-results" style="margin-top:10px;"></div>
+        </div>
+
+        <div id="link-page-unpublished-fields" hidden>
+          <p class="form-hint" style="margin-bottom:8px;">Coloriages assignés à des challenges mais pas encore postés sur Instagram.</p>
+          <div id="link-page-unpublished-list" class="tag-page-results"></div>
         </div>
 
         <p class="form-hint" id="link-page-warning" hidden></p>
@@ -1604,6 +1682,7 @@
         </div>
       </div>
       <div class="modal__footer">
+        <button type="button" class="btn btn--ghost btn--sm" id="btn-cleanup-unused-tags" title="Supprimer les tags non utilisés">🧹 Nettoyer inutilisés</button>
         <div class="modal__footer-spacer"></div>
         <button type="button" class="btn btn--primary" id="btn-close-manage-tags-footer">Fermer</button>
       </div>
@@ -1649,6 +1728,12 @@
         <div class="form-row">
           <label for="input-secondary-person-name">Prénom de la personne</label>
           <input type="text" id="input-secondary-person-name" placeholder="Ex. Léa">
+        </div>
+        <div class="form-row" id="secondary-colocopine-row">
+          <label for="select-secondary-colocopine">Colocopine associée (facultatif)</label>
+          <select id="select-secondary-colocopine">
+            <option value="">— Aucune —</option>
+          </select>
         </div>
         <div class="form-row">
           <label>Photo de son coloriage</label>
@@ -1830,55 +1915,127 @@
   </div>
 
   <!-- ===== MODALE : CARTE POSTALE ===== -->
-  <div class="modal-overlay" id="modal-postcard" hidden>
-    <div class="modal modal--postcard" role="dialog" aria-modal="true" aria-labelledby="modal-postcard-title">
-      <div class="modal__header">
-        <h2 class="modal__title" id="modal-postcard-title">Carte postale</h2>
-        <button class="icon-btn" id="btn-close-modal-postcard" type="button" aria-label="Fermer">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg>
-        </button>
-      </div>
-      <div class="postcard-editor">
-        <div class="postcard-sidebar">
-          <div class="form-row">
-            <label>Style</label>
-            <div class="postcard-style-btns">
-              <button type="button" class="postcard-opt-btn is-active" data-postcard-style="vintage">🏷️ Vintage</button>
-              <button type="button" class="postcard-opt-btn" data-postcard-style="modern">✦ Moderne</button>
-              <button type="button" class="postcard-opt-btn" data-postcard-style="polaroid">📸 Polaroid</button>
-            </div>
-          </div>
-          <div class="form-row">
-            <label>Format</label>
-            <div class="postcard-style-btns">
-              <button type="button" class="postcard-opt-btn is-active" data-postcard-format="square">⬛ Carré</button>
-              <button type="button" class="postcard-opt-btn" data-postcard-format="portrait">📱 Portrait</button>
-              <button type="button" class="postcard-opt-btn" data-postcard-format="landscape">🖥️ Paysage</button>
-            </div>
-          </div>
-          <div class="form-row" style="margin-top:12px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-              <label style="margin:0;">Blocs de texte</label>
-              <button type="button" class="btn btn--secondary btn--sm" id="btn-add-postcard-block">+ Ajouter</button>
-            </div>
-            <div id="postcard-blocks-list"></div>
-          </div>
-          <p class="form-hint" style="margin-top:8px;">Glisse un bloc sur l'aperçu pour le déplacer</p>
+  <!-- ===== VUE : CARTE POSTALE ===== -->
+  <main class="view view-postcard" id="view-postcard" hidden>
+    <div class="postcard-view">
+
+      <!-- Sidebar gauche -->
+      <div class="postcard-view__sidebar">
+        <div class="postcard-view__sidebar-header">
+          <button class="back-link" id="btn-close-postcard-view" type="button">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+            Retour
+          </button>
+          <button type="button" class="btn btn--primary btn--sm" id="btn-download-postcard">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Télécharger
+          </button>
         </div>
+
+        <div class="postcard-view__section">
+          <div class="postcard-view__section-title">Style</div>
+          <div class="postcard-style-btns">
+            <button type="button" class="postcard-opt-btn is-active" data-postcard-style="vintage">🏷️ Vintage</button>
+            <button type="button" class="postcard-opt-btn" data-postcard-style="modern">✦ Moderne</button>
+            <button type="button" class="postcard-opt-btn" data-postcard-style="polaroid">📸 Polaroid</button>
+            <button type="button" class="postcard-opt-btn" data-postcard-style="plain">🎨 Fond uni</button>
+          </div>
+          <div id="postcard-bg-colors" class="postcard-bg-colors" hidden>
+            <label style="font-size:11px;color:var(--ink-faint);margin-top:8px;display:block;">Couleur du fond</label>
+            <div class="postcard-color-swatches" id="postcard-bg-swatches" style="margin-top:6px;"></div>
+          </div>
+        </div>
+
+        <div class="postcard-view__section">
+          <div class="postcard-view__section-title">Format</div>
+          <div class="postcard-style-btns">
+            <button type="button" class="postcard-opt-btn is-active" data-postcard-format="square">⬛ Carré</button>
+            <button type="button" class="postcard-opt-btn" data-postcard-format="portrait">📱 Portrait</button>
+            <button type="button" class="postcard-opt-btn" data-postcard-format="landscape">🖥️ Paysage</button>
+          </div>
+        </div>
+
+        <div class="postcard-view__section">
+          <div class="postcard-view__section-title">Cadre de la carte</div>
+          <div id="postcard-card-frames" class="postcard-style-btns"></div>
+        </div>
+
+        <div class="postcard-view__section">
+          <div class="postcard-view__section-title" style="display:flex;align-items:center;justify-content:space-between;">
+            Blocs
+            <button type="button" class="btn btn--secondary btn--sm" id="btn-add-postcard-block">+ Texte</button>
+          </div>
+          <div id="postcard-blocks-list" class="postcard-view__blocks-list"></div>
+          <p class="form-hint" style="margin-top:8px;font-size:11px;">Glisse les blocs sur le canvas pour les déplacer</p>
+        </div>
+      </div>
+
+      <!-- Canvas central -->
+      <div class="postcard-view__canvas-area">
         <div class="postcard-canvas-wrap" id="postcard-canvas-wrap">
           <canvas id="postcard-canvas"></canvas>
         </div>
       </div>
-      <div class="modal__footer">
-        <div class="modal__footer-spacer"></div>
-        <button type="button" class="btn btn--secondary" id="btn-cancel-postcard">Annuler</button>
-        <button type="button" class="btn btn--primary" id="btn-download-postcard">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          Télécharger
+
+    </div>
+  </main>
+
+  <!-- ===== MODALE : COLOCOPINE ===== -->
+  <div class="modal-overlay" id="modal-colocopine" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-colocopine-title">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-colocopine-title">Nouvelle colocopine</h2>
+        <button class="icon-btn" id="btn-close-modal-colocopine" type="button" aria-label="Fermer">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
+      </div>
+      <form id="form-colocopine" class="modal__body">
+        <div class="form-row form-row--cover">
+          <label class="cover-uploader" id="colocopine-avatar-uploader" for="input-colocopine-avatar">
+            <img id="colocopine-avatar-preview" alt="" hidden style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+            <span class="cover-uploader__placeholder">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              <span>Photo de profil</span>
+            </span>
+            <input type="file" id="input-colocopine-avatar" accept="image/*" hidden>
+          </label>
+          <button type="button" class="link-btn" id="btn-remove-colocopine-avatar" hidden>Retirer la photo</button>
+        </div>
+        <div class="form-row">
+          <label for="input-colocopine-pseudo">Pseudo <span class="required">*</span></label>
+          <input type="text" id="input-colocopine-pseudo" required placeholder="Ex. @coloringqueen" maxlength="60">
+        </div>
+        <div class="form-row">
+          <label for="input-colocopine-instagram">Lien Instagram (facultatif)</label>
+          <input type="url" id="input-colocopine-instagram" placeholder="https://instagram.com/..." maxlength="200">
+        </div>
+        <div class="form-row">
+          <label>Livres en commun</label>
+          <div style="display:flex;gap:6px;margin-bottom:8px;">
+            <button type="button" class="postcard-opt-btn is-active" data-colo-sort="added">Par ordre d'ajout</button>
+            <button type="button" class="postcard-opt-btn" data-colo-sort="type">Par type</button>
+          </div>
+          <div id="colocopine-books-list" class="colocopine-books-list"></div>
+        </div>
+        <p class="form-warning" id="colocopine-warning" hidden></p>
+      </form>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--ghost" id="btn-delete-colocopine" hidden>Supprimer</button>
+        <div class="modal__footer-spacer"></div>
+        <button type="button" class="btn btn--secondary" id="btn-cancel-colocopine">Annuler</button>
+        <button type="submit" form="form-colocopine" class="btn btn--primary" id="btn-save-colocopine">Ajouter</button>
       </div>
     </div>
   </div>
+
+  <!-- ===== VUE : DÉTAIL COLOCOPINE ===== -->
+  <main class="view view-colocopine-detail" id="view-colocopine-detail" hidden>
+    <button class="back-link" id="btn-back-from-colocopine-detail" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour aux colocopines
+    </button>
+    <div id="colocopine-detail-content"></div>
+  </main>
 
   <!-- ===== GLAÇON D'ÉTÉ (juin à août uniquement, ajouté dynamiquement) ===== -->
 

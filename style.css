@@ -1151,13 +1151,9 @@ a:focus-visible,
 }
 
 .page-cell--merged {
-  /* Occupe l'espace de 2 colonnes pour matérialiser visuellement la
-     fusion de deux pages adjacentes en une seule double page physique —
-     mais garde la MÊME HAUTEUR que les cases simples (pas de aspect-ratio
-     carré, sinon la case deviendrait deux fois plus haute aussi). */
   grid-column: span 2;
-  aspect-ratio: auto;
-  height: 100%;
+  aspect-ratio: 2 / 1;
+  height: auto;
 }
 
 .page-grid--photo-mode .page-cell--merged {
@@ -2364,7 +2360,7 @@ a:focus-visible,
 .challenge-card {
   background: var(--paper-raised);
   border: 1px solid var(--wood-line);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-lg) !important;
   padding: 14px;
   cursor: pointer;
   transition: transform var(--transition-base), box-shadow var(--transition-base);
@@ -3550,36 +3546,6 @@ a:focus-visible,
   height: calc(100% + 8px);
   cursor: pointer;
   opacity: 0;
-}
-
-.eyedropper-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 1.5px solid var(--wood-line);
-  background: var(--paper);
-  color: var(--ink);
-  cursor: pointer;
-  flex-shrink: 0;
-  padding: 0;
-  transition: background-color var(--transition-fast), transform var(--transition-fast);
-}
-
-.eyedropper-btn svg {
-  width: 14px;
-  height: 14px;
-}
-
-.eyedropper-btn:hover {
-  background: var(--paper-soft);
-  transform: scale(1.06);
-}
-
-.eyedropper-btn:active {
-  transform: scale(0.95);
 }
 
 .gear-unit-row__name {
@@ -5997,8 +5963,9 @@ main.view:not([hidden]) {
 .palette-card__photo {
   width: 100%;
   aspect-ratio: 4/3;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
+  background: var(--paper-soft);
 }
 
 .palette-card__photo--empty {
@@ -6808,3 +6775,705 @@ main.view:not([hidden]) {
   font-size: 12px;
   font-family: monospace;
 }
+
+.tag-cat-search-wrap {
+  padding: 6px 0 8px;
+}
+.tag-cat-search {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--wood-line);
+  border-radius: var(--radius-sm);
+  background: var(--paper-soft);
+  color: var(--ink);
+  font-size: 13px;
+}
+.tag-cat-more {
+  font-size: 12px;
+  color: var(--ink-faint);
+  font-style: italic;
+  padding: 4px 0;
+  margin: 0;
+}
+
+/* ---------- COLOCOPINES ---------- */
+
+.colocopines-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 700px) {
+  .colocopines-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.colocopine-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 16px 16px;
+  background: var(--paper-raised);
+  border: 1px solid var(--wood-line);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.15s;
+  position: relative;
+  text-align: center;
+}
+.colocopine-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); transform: translateY(-2px); }
+
+.colocopine-card__avatar {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--paper-soft);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  border: 3px solid var(--wood-line);
+}
+.colocopine-card__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.colocopine-card__pseudo { font-size: 15px; font-weight: 700; color: var(--ink); }
+.colocopine-card__stats { font-size: 12px; color: var(--ink-faint); }
+.colocopine-card__insta { font-size: 12px; color: var(--accent-terracotta-deep); text-decoration: none; }
+.colocopine-card__edit {
+  position: absolute; top: 8px; right: 8px;
+  opacity: 0; transition: opacity 0.15s;
+}
+.colocopine-card:hover .colocopine-card__edit { opacity: 1; }
+
+/* Modale books selector */
+.colocopine-books-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; }
+.colocopine-book-row { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; border-bottom: 1px solid var(--wood-line); }
+.colocopine-book-row:last-child { border-bottom: none; }
+.colocopine-book-row__label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13.5px; }
+.colocopine-book-row__cover { width: 28px; height: 28px; object-fit: cover; border-radius: 3px; }
+.colocopine-book-row__photo { padding-left: 28px; }
+.colocopine-book-row__photo.hidden { display: none; }
+.colocopine-book-tracker-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; color: var(--ink-faint); padding: 6px 10px; background: var(--paper-soft); border-radius: var(--radius-sm); border: 1px dashed var(--wood-line); }
+.colocopine-tracker-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: var(--radius-sm); }
+
+/* Overlay détail */
+.colocopine-detail-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 300; display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.colocopine-detail {
+  background: var(--paper-raised);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  max-width: 700px; width: 100%;
+  max-height: 90vh; overflow-y: auto;
+  position: relative;
+}
+.colocopine-detail__close { position: absolute; top: 16px; right: 16px; }
+.colocopine-detail__header { display: flex; gap: 16px; align-items: center; margin-bottom: 24px; }
+.colocopine-detail__avatar { width: 80px; height: 80px; border-radius: 50%; overflow: hidden; background: var(--paper-soft); display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; border: 3px solid var(--wood-line); }
+.colocopine-detail__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.colocopine-detail__avatar-placeholder { font-size: 32px; }
+.colocopine-detail__pseudo { font-size: 20px; font-weight: 700; }
+.colocopine-detail__duocount { font-size: 13px; color: var(--ink-faint); margin-top: 4px; }
+.colocopine-detail__section-title { font-size: 14px; font-weight: 700; color: var(--ink); margin: 20px 0 10px; border-bottom: 1px solid var(--wood-line); padding-bottom: 6px; }
+
+/* Livres en commun avec hover tracker */
+.colocopine-detail__books { display: flex; gap: 12px; flex-wrap: wrap; }
+.colocopine-shared-book { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 90px; }
+.colocopine-shared-book__cover-wrap { position: relative; width: 90px; height: 120px; }
+.colocopine-shared-book__cover { width: 90px; height: 120px; object-fit: cover; border-radius: var(--radius-md); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.colocopine-shared-book__no-cover { width: 90px; height: 120px; background: var(--paper-soft); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--ink-faint); }
+.colocopine-shared-book__title { font-size: 11px; text-align: center; color: var(--ink-soft); line-height: 1.3; max-width: 90px; }
+
+/* Hover tracker */
+.colocopine-tracker-hover {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.6);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.2s;
+  pointer-events: none;
+}
+.colocopine-shared-book__cover-wrap:hover .colocopine-tracker-hover { opacity: 1; }
+.colocopine-tracker-hover img { width: 80px; height: 110px; object-fit: cover; border-radius: 4px; border: 2px solid white; }
+
+/* Duos côte à côte */
+.colocopine-detail__duos { display: flex; flex-direction: column; gap: 14px; }
+.colocopine-duo-row { display: flex; gap: 12px; align-items: center; background: var(--paper-soft); border-radius: var(--radius-md); padding: 10px; }
+.colocopine-duo-row__photos { display: flex; gap: 6px; }
+.colocopine-duo-photo { width: 100px; height: 100px; border-radius: var(--radius-sm); overflow: hidden; }
+.colocopine-duo-photo img { width: 100%; height: 100%; object-fit: cover; }
+.colocopine-duo-photo__empty { width: 100%; height: 100%; background: var(--paper-raised); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--ink-faint); text-align: center; padding: 4px; }
+.colocopine-duo-photo--mine { border: 2px solid var(--accent-terracotta-deep); border-radius: var(--radius-sm); }
+.colocopine-duo-photo--her { border: 2px solid #D85A8C; border-radius: var(--radius-sm); }
+.colocopine-duo-row__info { display: flex; flex-direction: column; gap: 3px; }
+.colocopine-duo-info__book { font-size: 13px; font-weight: 600; color: var(--ink); }
+.colocopine-duo-info__page { font-size: 12px; color: var(--ink-soft); }
+.colocopine-duo-info__year { font-size: 12px; color: var(--ink-faint); }
+
+.colocopine-unassigned-list { display: flex; flex-direction: column; gap: 8px; }
+.colocopine-unassigned-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px;
+  background: var(--paper-soft);
+  border: 1px solid var(--wood-line);
+  border-radius: var(--radius-md);
+  cursor: pointer; text-align: left; width: 100%;
+  transition: background 0.15s;
+}
+.colocopine-unassigned-row:hover { background: var(--paper-raised); }
+.colocopine-unassigned-photo { width: 48px; height: 48px; object-fit: cover; border-radius: var(--radius-sm); flex-shrink: 0; }
+.colocopine-unassigned-photo--empty { display: flex; align-items: center; justify-content: center; background: var(--paper-raised); font-size: 20px; }
+.colocopine-unassigned-info { flex: 1; }
+
+.colocopine-duo-photo { position: relative; }
+.colocopine-duo-photo__edit-hint {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; opacity: 0; transition: opacity 0.2s;
+  border-radius: var(--radius-sm);
+}
+.colocopine-duo-photo--her:hover .colocopine-duo-photo__edit-hint { opacity: 1; }
+
+/* Zone zoom photo colocopine - fixe en haut de la fiche */
+.colocopine-photo-zoom {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--paper-raised);
+  padding: 12px;
+  margin: -24px -24px 16px -24px;
+  display: flex;
+  justify-content: center;
+  border-bottom: 1px solid var(--wood-line);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.colocopine-photo-zoom img {
+  max-height: 380px;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+}
+
+.colocopine-duo-photo.has-photo { cursor: zoom-in; }
+.colocopine-duo-photo__zoom-hint {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; opacity: 0; transition: opacity 0.2s;
+  border-radius: var(--radius-sm);
+}
+.colocopine-duo-photo.has-photo:hover .colocopine-duo-photo__zoom-hint { opacity: 1; }
+
+/* Vue détail duo (comme combo detail) */
+.colocopine-duo-detail {
+  background: var(--paper-raised);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  max-width: 800px; width: 100%;
+  max-height: 92vh; overflow-y: auto;
+}
+
+.colocopine-duo-detail__header {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 28px; flex-wrap: wrap;
+}
+.colocopine-duo-detail__back { flex-shrink: 0; }
+.colocopine-duo-detail__meta { flex: 1; }
+.colocopine-duo-detail__book { font-size: 18px; font-weight: 700; color: var(--ink); }
+.colocopine-duo-detail__page { font-size: 13px; color: var(--ink-faint); margin-top: 2px; }
+
+.colocopine-duo-detail__photos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.colocopine-duo-detail__side { display: flex; flex-direction: column; gap: 10px; }
+.colocopine-duo-detail__label { font-size: 14px; font-weight: 700; text-align: center; color: var(--ink); }
+
+.colocopine-duo-detail__photo-wrap {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  aspect-ratio: 3/4;
+  background: var(--paper-soft);
+  position: relative;
+}
+.colocopine-duo-detail__photo-wrap img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.colocopine-duo-detail__photo-wrap--mine {
+  border: 3px solid var(--accent-terracotta-deep);
+}
+.colocopine-duo-detail__photo-wrap--her {
+  border: 3px solid #D85A8C;
+  cursor: pointer;
+}
+.colocopine-duo-detail__photo-edit {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,0.6);
+  color: white; font-size: 13px;
+  padding: 8px; text-align: center;
+  opacity: 0; transition: opacity 0.2s;
+}
+.colocopine-duo-detail__photo-wrap--her:hover .colocopine-duo-detail__photo-edit { opacity: 1; }
+.colocopine-duo-detail__empty {
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; color: var(--ink-faint); font-size: 14px;
+  text-align: center; padding: 20px; line-height: 1.6;
+}
+
+/* Cartes duo compactes dans la liste */
+.colocopine-duo-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 14px;
+  background: var(--paper-soft);
+  border: 1px solid var(--wood-line);
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+  transition: background 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+}
+.colocopine-duo-card:hover {
+  background: var(--paper-raised);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.colocopine-duo-card__photos { display: flex; gap: 6px; flex-shrink: 0; }
+.colocopine-duo-card__photo {
+  width: 110px; height: 110px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--paper-raised);
+}
+.colocopine-duo-card__photo img { width: 100%; height: 100%; object-fit: cover; }
+.colocopine-duo-card__photo--mine { border: 2px solid var(--accent-terracotta-deep); }
+.colocopine-duo-card__photo--her { border: 2px solid #D85A8C; }
+.colocopine-duo-card__empty { display: flex; align-items: center; justify-content: center; height: 100%; font-size: 11px; color: var(--ink-faint); text-align: center; padding: 4px; }
+.colocopine-duo-card__info { flex: 1; }
+.colocopine-duo-card__book { font-size: 14px; font-weight: 600; color: var(--ink); }
+.colocopine-duo-card__meta { font-size: 12px; color: var(--ink-faint); margin-top: 3px; }
+
+/* Modale duo légère */
+.colocopine-duo-modal {
+  position: fixed; inset: 0; z-index: 400;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.colocopine-duo-modal__inner {
+  background: var(--paper-raised);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  max-width: 620px; width: 100%;
+  max-height: 85vh; overflow-y: auto;
+}
+.colocopine-duo-modal__header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 20px; gap: 12px;
+}
+
+/* Priorité challenge */
+.challenge-card__priority {
+  position: absolute; top: 6px; left: 6px; z-index: 2;
+  font-size: 11px; font-weight: 700; padding: 2px 7px;
+  border-radius: 999px; backdrop-filter: blur(4px);
+}
+.challenge-card__priority--urgent { background: rgba(220,60,30,0.85); color: white; }
+.challenge-card__priority--high { background: rgba(200,150,20,0.85); color: white; }
+.challenge-card__cover-link {
+  display: block; text-decoration: none;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  overflow: hidden;
+}
+.challenge-card__cover-link img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Wishlist obtenus */
+.wishlist-obtained-header {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 700; color: var(--ink-soft);
+  margin: 28px 0 12px; padding-top: 20px;
+  border-top: 1px solid var(--wood-line);
+}
+.wishlist-obtained-list {
+  display: flex; flex-wrap: wrap; gap: 10px;
+}
+.wishlist-obtained-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; background: var(--paper-soft);
+  border-radius: var(--radius-md); cursor: pointer;
+  font-size: 12.5px; color: var(--ink-soft);
+  border: 1px solid var(--wood-line);
+  transition: background 0.15s;
+}
+.wishlist-obtained-item:hover { background: var(--paper-raised); }
+.wishlist-obtained-item__img {
+  width: 32px; height: 32px; border-radius: 4px; object-fit: cover; flex-shrink: 0;
+}
+.wishlist-obtained-item__img--empty { display: flex; align-items: center; justify-content: center; background: var(--paper-raised); font-size: 16px; }
+.wishlist-obtained-item__name { font-weight: 600; }
+.wishlist-obtained-item__price { color: var(--ink-faint); font-size: 11px; }
+
+/* Catégories tags dans modale liaison page */
+.link-page-tag-categories { display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; }
+.link-page-tag-cat__header {
+  display: flex; align-items: center; gap: 6px;
+  width: 100%; padding: 7px 10px;
+  background: var(--paper-soft); border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; color: var(--ink);
+  border: 1px solid var(--wood-line); cursor: pointer; text-align: left;
+}
+.link-page-tag-cat__header:hover { background: var(--paper-raised); }
+.link-page-tag-cat__chevron { width: 14px; height: 14px; flex-shrink: 0; }
+.link-page-tag-cat__tags {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 8px 10px; background: var(--paper-raised);
+  border: 1px solid var(--wood-line); border-top: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+
+/* Badge priorité plus visible */
+.challenge-card { position: relative; }
+.challenge-card__priority {
+  position: static !important;
+  display: inline-block;
+  font-size: 12px; font-weight: 700;
+  padding: 3px 8px; border-radius: 999px;
+  margin-bottom: 4px;
+}
+.challenge-card__priority--urgent { background: #DC3C1E; color: white; }
+.challenge-card__priority--high { background: #C89614; color: white; }
+
+.link-page-tag-search-wrap { position: relative; margin-bottom: 8px; }
+.link-page-tag-search-wrap input {
+  width: 100%; padding: 8px 12px;
+  border: 1px solid var(--wood-line); border-radius: var(--radius-sm);
+  background: var(--paper-soft); color: var(--ink); font-size: 13px;
+}
+.link-page-tag-autocomplete {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 100;
+  background: var(--paper-raised); border: 1px solid var(--wood-line);
+  border-top: none; border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-height: 200px; overflow-y: auto;
+}
+.link-page-tag-autocomplete__item {
+  display: block; width: 100%; text-align: left;
+  padding: 8px 12px; font-size: 13px; color: var(--ink);
+  border-bottom: 1px solid var(--wood-line);
+}
+.link-page-tag-autocomplete__item:last-child { border-bottom: none; }
+.link-page-tag-autocomplete__item:hover { background: var(--paper-soft); }
+
+/* Drag & drop catégories et colocopines */
+.tag-category-card.is-dragging,
+.colocopine-card.is-dragging { opacity: 0.4; }
+.tag-category-card.drag-over,
+.colocopine-card.drag-over { outline: 2px dashed var(--accent-terracotta-deep); outline-offset: 2px; }
+
+/* Catégories en grille */
+.tag-category-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ===== VUE CARTE POSTALE PLEIN ÉCRAN ===== */
+.view-postcard {
+  padding: 0 !important;
+  overflow: hidden;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+main.view.view-postcard:not([hidden]) {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 100 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: var(--paper-soft);
+}
+
+.postcard-view {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.postcard-view__sidebar {
+  background: var(--paper-raised);
+  border-right: 1px solid var(--wood-line);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 100%;
+  padding: 0;
+}
+
+.postcard-view__sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--wood-line);
+  background: var(--paper-soft);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.postcard-view__section {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--wood-line);
+}
+
+.postcard-view__section-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.postcard-view__blocks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.postcard-view__canvas-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper-soft);
+  padding: 24px;
+  overflow: auto;
+  height: 100%;
+  min-height: 0;
+}
+
+.postcard-view__canvas-area .postcard-canvas-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.postcard-view__canvas-area canvas {
+  box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+  border-radius: 4px;
+  cursor: grab;
+}
+
+.colocopine-type-group { margin-bottom: 4px; }
+.colocopine-type-group__header {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 8px 10px;
+  background: var(--paper-soft); border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; color: var(--ink);
+  border: 1px solid var(--wood-line); cursor: pointer; text-align: left;
+}
+.colocopine-type-group__books { padding: 4px 0 4px 12px; }
+.colocopine-type-chevron { width: 14px; height: 14px; transition: transform 0.2s; }
+
+/* Tracker colocopine */
+.colocopine-detail-overlay .colocopine-detail {
+  max-width: min(90vw, 700px);
+  max-height: 85vh;
+}
+
+/* Tracker colocopine */
+.colo-tracker-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 6px;
+}
+.colo-tracker-cell {
+  height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--wood-line);
+  background: var(--paper-soft);
+  color: var(--ink-faint);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.colo-tracker-cell.is-merged {
+  grid-column: span 2;
+}
+.colo-tracker-cell.is-checked {
+  background: var(--accent-terracotta-deep);
+  border-color: var(--accent-terracotta-deep);
+  color: white;
+  font-weight: 700;
+}
+.colo-tracker-cell:hover {
+  filter: brightness(1.1);
+}
+
+/* Mention instagram dans la vue liste */
+.challenge-item-row__insta {
+  font-size: 11px; padding: 2px 8px; border-radius: 999px;
+  display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+}
+.challenge-item-row__insta--posted { background: rgba(131,58,180,0.15); color: #8A3AB9; }
+.challenge-item-row__insta--pending { background: var(--paper-soft); color: var(--ink-faint); }
+.challenge-item-row__insta .icon { width: 12px; height: 12px; }
+
+/* Badge instagram sur bingo */
+.bingo-cell__insta-badge {
+  position: absolute; top: 4px; right: 4px;
+  background: rgba(131,58,180,0.85); border-radius: 4px;
+  padding: 2px; display: flex;
+}
+.bingo-cell__insta-badge svg { width: 12px; height: 12px; stroke: white; }
+
+/* Bingo cell avec lien mais sans photo */
+.bingo-cell__placeholder--linked {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; padding: 4px;
+}
+.bingo-cell__linked-info { text-align: center; }
+.bingo-cell__linked-title { font-size: 9px; color: var(--ink-soft); line-height: 1.2; }
+.bingo-cell__linked-page { font-size: 11px; font-weight: 700; color: var(--accent-terracotta-deep); }
+
+/* Section coloriages non postés */
+.challenges-unpublished-section { margin-bottom: 16px; }
+.challenges-unpublished-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 700; color: #8A3AB9;
+  margin-bottom: 10px;
+}
+.challenges-unpublished-title .icon { width: 16px; height: 16px; stroke: #8A3AB9; }
+.challenges-unpublished-list { display: flex; flex-wrap: wrap; gap: 10px; }
+.challenges-unpublished-item {
+  display: flex; gap: 10px; align-items: center;
+  background: var(--paper-soft); border-radius: var(--radius-md);
+  padding: 8px 12px; min-width: 200px;
+}
+.challenges-unpublished-item__photo {
+  width: 48px; height: 48px; border-radius: var(--radius-sm);
+  background-size: cover; background-position: center; flex-shrink: 0;
+}
+.challenges-unpublished-item__photo--empty {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--paper-raised); font-size: 20px;
+}
+.challenges-unpublished-item__book { font-size: 12px; font-weight: 600; }
+.challenges-unpublished-item__page { font-size: 11px; color: var(--ink-faint); }
+.challenges-unpublished-item__challenges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+
+/* Cartes coloriages non postés */
+.challenges-unpublished-cards {
+  display: flex; flex-wrap: wrap; gap: 12px;
+}
+.challenges-unpublished-card {
+  width: 160px;
+  background: var(--paper-raised);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--wood-line);
+}
+.challenges-unpublished-card__photo {
+  width: 100%; height: 160px;
+  background-size: cover; background-position: center;
+  background-color: var(--paper-soft);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.challenges-unpublished-card__placeholder {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 100%;
+  color: var(--ink-faint);
+}
+.challenges-unpublished-card__body {
+  padding: 8px 10px;
+}
+.challenges-unpublished-card__book {
+  font-size: 11px; font-weight: 600; color: var(--ink-faint);
+  white-space: normal; word-break: break-word; line-height: 1.3;
+}
+.challenges-unpublished-card__page {
+  font-size: 11px; color: var(--ink-faint); margin-bottom: 6px;
+}
+.challenges-unpublished-card__challenges {
+  display: flex; flex-direction: column; gap: 3px;
+}
+.challenges-unpublished-card__challenge-line {
+  display: flex; flex-direction: column;
+}
+.challenges-unpublished-card__challenge-title {
+  font-size: 11px; font-weight: 600; color: var(--accent-terracotta-deep);
+}
+.challenges-unpublished-card__item-label {
+  font-size: 10px; color: var(--ink-faint);
+}
+
+/* Volets livres dans modale liaison */
+.link-page-book-groups { display: flex; flex-direction: column; gap: 4px; max-height: 250px; overflow-y: auto; }
+.link-page-book-group__header {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 7px 10px;
+  background: var(--paper-soft); border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; color: var(--ink);
+  border: 1px solid var(--wood-line); cursor: pointer; text-align: left;
+}
+.link-page-book-group__header.has-selected { border-color: var(--accent-terracotta-deep); }
+.link-page-book-group__list { display: flex; flex-direction: column; gap: 2px; padding: 4px 0 4px 12px; }
+.link-page-book-option {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border-radius: var(--radius-sm);
+  font-size: 13px; color: var(--ink); text-align: left; width: 100%;
+  background: transparent; cursor: pointer;
+}
+.link-page-book-option:hover { background: var(--paper-soft); }
+.link-page-book-option.is-selected { background: var(--accent-terracotta-deep); color: white; font-weight: 600; }
+
+/* Année sur carte wishlist */
+.wishlist-card__year {
+  position: absolute; bottom: 6px; right: 6px;
+  background: rgba(0,0,0,0.55); color: white;
+  font-size: 10px; font-weight: 700; padding: 2px 6px;
+  border-radius: 999px; backdrop-filter: blur(4px);
+}
+
+/* Stats wishlist par année */
+.wishlist-stat-row {
+  display: grid; grid-template-columns: 60px 1fr 1fr 1fr;
+  gap: 8px; font-size: 12px; padding: 4px 0;
+  border-bottom: 1px solid var(--wood-line);
+  color: var(--ink-soft);
+}
+.wishlist-stat-year-rows { margin-bottom: 8px; }
+
+/* Compteur badge collection */
+.collection-badge__count {
+  position: absolute; bottom: 4px; right: 4px;
+  background: rgba(0,0,0,0.75); color: #FFD700;
+  font-size: 10px; font-weight: 800; padding: 1px 5px;
+  border-radius: 999px; backdrop-filter: blur(4px);
+}
+.collection-badge__img-wrap { position: relative; }
+
+.challenge-card__prize-hint {
+  font-size: 18px; display: block; text-align: center;
+  margin-top: 4px;
+}
+
+/* Scroll dans le panneau non postés de la modale liaison */
+#link-page-unpublished-fields {
+  max-height: 400px;
+  overflow-y: auto;
+}
+#link-page-unpublished-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Modale liaison page */
+.modal--link-page { max-width: 520px; }

@@ -45,7 +45,7 @@
    ========================================================= */
 
 const DB_NAME = 'coloriage-tracker';
-const DB_VERSION = 13;
+const DB_VERSION = 14;
 const UNCATEGORIZED_TAG_CATEGORY = 'Sans catégorie';
 const UNCATEGORIZED_GEAR_CATEGORY = 'Sans catégorie';
 const UNCATEGORIZED_CATEGORY = 'Sans catégorie'; // catégorie par défaut partagée
@@ -161,6 +161,10 @@ function openDB() {
 
       if (!db.objectStoreNames.contains('missions')) {
         db.createObjectStore('missions', { keyPath: 'id' });
+      }
+
+      if (!db.objectStoreNames.contains('colocopines')) {
+        db.createObjectStore('colocopines', { keyPath: 'id' });
       }
     };
 
@@ -336,6 +340,28 @@ const PagesAPI = {
     const store = t.objectStore('pageEntries');
     const entry = await this._getOrCreateEntry(store, bookId, pageNumber);
     const updated = { ...entry, favorite, updatedAt: Date.now() };
+    await reqToPromise(store.put(updated));
+    return updated;
+  },
+
+  async setPageColocopine(bookId, pageNumber, colocopineId) {
+    const t = await tx(['pageEntries'], 'readwrite');
+    const store = t.objectStore('pageEntries');
+    const entry = await this._getOrCreateEntry(store, bookId, pageNumber);
+    // Gérer un tableau de colocopineIds pour duo/trio/plus
+    const currentIds = entry.colocopineIds || (entry.colocopineId ? [entry.colocopineId] : []);
+    let newIds;
+    if (!colocopineId) {
+      // Retirer toutes les colocopines
+      newIds = [];
+    } else if (currentIds.includes(colocopineId)) {
+      // Déjà présente → retirer (toggle)
+      newIds = currentIds.filter(id => id !== colocopineId);
+    } else {
+      // Ajouter
+      newIds = [...currentIds, colocopineId];
+    }
+    const updated = { ...entry, colocopineIds: newIds, colocopineId: newIds[0] || null, updatedAt: Date.now() };
     await reqToPromise(store.put(updated));
     return updated;
   },
@@ -618,6 +644,26 @@ const TagsAPI = {
     return { bookCount, pageCount };
   },
 
+  // Version batch : une seule passe IndexedDB pour TOUS les tags — bien plus rapide
+  async countUsageAll() {
+    const t = await tx(['books', 'pageEntries']);
+    const books = await reqToPromise(t.objectStore('books').getAll());
+    const entries = await reqToPromise(t.objectStore('pageEntries').getAll());
+    const bookMap = new Map();
+    const pageMap = new Map();
+    for (const b of books) {
+      for (const tag of (b.tags || [])) {
+        bookMap.set(tag, (bookMap.get(tag) || 0) + 1);
+      }
+    }
+    for (const e of entries) {
+      for (const tag of (e.tags || [])) {
+        pageMap.set(tag, (pageMap.get(tag) || 0) + 1);
+      }
+    }
+    return { bookMap, pageMap };
+  },
+
   async deleteTagEverywhere(name) {
     // Retire le tag de tous les livres et de toutes les pages qui l'utilisent,
     // puis le retire du registre global. Action irréversible et complète,
@@ -657,15 +703,27 @@ const TagCategoriesAPI = {
   async getAll() {
     const t = await tx(['tagCategories']);
     const all = await reqToPromise(t.objectStore('tagCategories').getAll());
-    const names = all.map(c => c.name);
-    // "Sans catégorie" existe toujours, même si elle n'a jamais été créée
-    // explicitement : c'est le panier par défaut de tout nouveau tag.
-    if (!names.includes(UNCATEGORIZED_TAG_CATEGORY)) names.unshift(UNCATEGORIZED_TAG_CATEGORY);
-    return names.sort((a, b) => {
-      if (a === UNCATEGORIZED_TAG_CATEGORY) return 1;
-      if (b === UNCATEGORIZED_TAG_CATEGORY) return -1;
-      return a.localeCompare(b, 'fr');
+    // Trier par sortIndex si disponible, sinon alphabétique
+    all.sort((a, b) => {
+      if (a.name === UNCATEGORIZED_TAG_CATEGORY) return 1;
+      if (b.name === UNCATEGORIZED_TAG_CATEGORY) return -1;
+      if (a.sortIndex !== undefined && b.sortIndex !== undefined) return a.sortIndex - b.sortIndex;
+      return a.name.localeCompare(b.name, 'fr');
     });
+    const names = all.map(c => c.name);
+    if (!names.includes(UNCATEGORIZED_TAG_CATEGORY)) names.push(UNCATEGORIZED_TAG_CATEGORY);
+    return names;
+  },
+
+  async reorder(orderedNames) {
+    const t = await tx(['tagCategories'], 'readwrite');
+    const store = t.objectStore('tagCategories');
+    const all = await reqToPromise(store.getAll());
+    const puts = orderedNames.map((name, i) => {
+      const existing = all.find(c => c.name === name) || { name };
+      return reqToPromise(store.put({ ...existing, sortIndex: i }));
+    });
+    await Promise.all(puts);
   },
 
   async create(name) {
@@ -722,12 +780,15 @@ const ChallengesAPI = {
       title: data.title.trim(),
       instructions: (data.instructions || '').trim(),
       cover: data.cover || null,
+      prize: data.prize || null,
+      link: data.link || null,
+      priority: data.priority || 0,
       startDate: data.startDate || null,
       endDate: data.endDate || null,
       year: data.year || null,
-      status: data.status || 'todo', // 'todo' | 'in_progress' | 'done'
+      status: data.status || 'todo',
       prizeWon: false,
-      items: data.items || [], // [{ id, label, checked }]
+      items: data.items || [],
       createdAt: Date.now(),
       updatedAt: Date.now(),
       sortIndex: maxSort + 1,
@@ -1110,6 +1171,16 @@ const BookTypesAPI = {
     return bookType;
   },
 
+  async createWithId(id, name) {
+    const t = await tx(['bookTypes'], 'readwrite');
+    const store = t.objectStore('bookTypes');
+    const all = await reqToPromise(store.getAll());
+    const maxSort = all.reduce((m, bt) => Math.max(m, bt.sortIndex ?? 0), 0);
+    const bookType = { id, name: name.trim(), sortIndex: maxSort + 1 };
+    await reqToPromise(store.put(bookType));
+    return bookType;
+  },
+
   async delete(bookTypeId) {
     // Supprimer un type retire l'assignation sur tous les livres concernés
     // (ils repassent "sans type", donc dans l'étagère "Livre de coloriage")
@@ -1444,9 +1515,91 @@ const CharacterCategoriesAPI = makeCategoriesAPI('characterCategories', 'charact
 const PaletteCategoriesAPI   = makeCategoriesAPI('paletteCategories',   'palettes');
 const TechniqueCategoriesAPI = makeCategoriesAPI('techniqueCategories',  'techniques');
 
+/* ---------- API : COLOCOPINES ---------- */
+
+const ColocopinesAPI = {
+  async getAll() {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const t = db.transaction(['colocopines'], 'readonly');
+      const req = t.objectStore('colocopines').getAll();
+      req.onsuccess = () => {
+        const all = req.result;
+        all.sort((a, b) => (a.sortIndex ?? 999) - (b.sortIndex ?? 999));
+        res(all);
+      };
+      req.onerror = () => rej(req.error);
+    });
+  },
+  async create(data) {
+    const db = await openDB();
+    const item = {
+      id: uid(),
+      pseudo: data.pseudo.trim(),
+      avatar: data.avatar || null,
+      instagram: (data.instagram || '').trim(),
+      // sharedBooks : [{ bookId, trackerPhoto }]
+      sharedBooks: data.sharedBooks || [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    return new Promise((res, rej) => {
+      const t = db.transaction(['colocopines'], 'readwrite');
+      const req = t.objectStore('colocopines').add(item);
+      req.onsuccess = () => res(item);
+      req.onerror = () => rej(req.error);
+    });
+  },
+  async update(id, patch) {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const t = db.transaction(['colocopines'], 'readwrite');
+      const store = t.objectStore('colocopines');
+      const getReq = store.get(id);
+      getReq.onsuccess = () => {
+        const updated = { ...getReq.result, ...patch, updatedAt: Date.now() };
+        const putReq = store.put(updated);
+        putReq.onsuccess = () => res(updated);
+        putReq.onerror = () => rej(putReq.error);
+      };
+      getReq.onerror = () => rej(getReq.error);
+    });
+  },
+  async setSharedBookCheckedPages(colocopineId, bookId, checkedPages) {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const t = db.transaction(['colocopines'], 'readwrite');
+      const store = t.objectStore('colocopines');
+      const getReq = store.get(colocopineId);
+      getReq.onsuccess = () => {
+        const colo = getReq.result;
+        if (!colo) { rej(new Error('Colocopine introuvable')); return; }
+        const sharedBooks = (colo.sharedBooks || []).map(sb =>
+          sb.bookId === bookId ? { ...sb, checkedPages } : sb
+        );
+        const updated = { ...colo, sharedBooks, updatedAt: Date.now() };
+        const putReq = store.put(updated);
+        putReq.onsuccess = () => res(updated);
+        putReq.onerror = () => rej(putReq.error);
+      };
+      getReq.onerror = () => rej(getReq.error);
+    });
+  },
+
+  async remove(id) {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const t = db.transaction(['colocopines'], 'readwrite');
+      const req = t.objectStore('colocopines').delete(id);
+      req.onsuccess = () => res();
+      req.onerror = () => rej(req.error);
+    });
+  },
+};
+
 const BackupAPI = {
   async exportAll() {
-    const [books, pageEntries, years, tags, tagCategories, challenges, wishlist, gearItems, gearCategories, gearMediums, combos, comboCategories, characters] = await Promise.all([
+    const [books, pageEntries, years, tags, tagCategories, challenges, wishlist, gearItems, gearCategories, gearMediums, combos, comboCategories, characters, bookTypes, palettes, techniques, characterCategories, paletteCategories, techniqueCategories, missions, colocopines] = await Promise.all([
       BooksAPI.getAll(),
       PagesAPI.getAll(),
       YearsAPI.getAll(),
@@ -1460,6 +1613,14 @@ const BackupAPI = {
       ComboAPI.getAll(),
       ComboCategoriesAPI.getAll(),
       CharacterAPI.getAll(),
+      BookTypesAPI.getAll(),
+      PalettesAPI.getAll(),
+      TechniquesAPI.getAll(),
+      CharacterCategoriesAPI.getAll(),
+      PaletteCategoriesAPI.getAll(),
+      TechniqueCategoriesAPI.getAll(),
+      getMissions(),
+      ColocopinesAPI.getAll(),
     ]);
     const metaStore = (await tx(['meta'])).objectStore('meta');
     const meta = await reqToPromise(metaStore.getAll());
@@ -1480,6 +1641,14 @@ const BackupAPI = {
       combos,
       comboCategories,
       characters,
+      bookTypes,
+      palettes,
+      techniques,
+      characterCategories,
+      paletteCategories,
+      techniqueCategories,
+      missions,
+      colocopines,
       meta,
     };
   },
@@ -1499,7 +1668,7 @@ const BackupAPI = {
       }
     }
 
-    const storeNames = ['books', 'pageEntries', 'years', 'tags', 'tagCategories', 'challenges', 'wishlist', 'gearItems', 'gearCategories', 'gearMediums', 'combos', 'comboCategories', 'characters', 'meta'];
+    const storeNames = ['books', 'pageEntries', 'years', 'tags', 'tagCategories', 'challenges', 'wishlist', 'gearItems', 'gearCategories', 'gearMediums', 'combos', 'comboCategories', 'characters', 'bookTypes', 'palettes', 'techniques', 'characterCategories', 'paletteCategories', 'techniqueCategories', 'missions', 'colocopines', 'meta'];
     const t = await tx(storeNames, 'readwrite');
 
     // Attend la fin RÉELLE de la transaction (commit), pas seulement que
@@ -1519,45 +1688,52 @@ const BackupAPI = {
       records.map(r => reqToPromise(t.objectStore(storeName).put(r)))
     );
 
-    await put('books', data.books);
-    await put('pageEntries', data.pageEntries);
-    await put('years', data.years);
-    // Les anciennes sauvegardes (avant les catégories) exportaient les tags
-    // comme un simple tableau de chaînes : on reconstitue alors l'objet
-    // attendu, avec "Sans catégorie" par défaut.
+    // IMPORTANT : on lance tous les puts SANS await intermédiaire pour éviter
+    // que la transaction se ferme automatiquement entre deux opérations
+    // (comportement strict d'Opera/Brave sur les transactions IndexedDB).
     const tagRecords = data.tags.map(t => {
       if (typeof t === 'string') return { name: t, categories: [UNCATEGORIZED_TAG_CATEGORY] };
       return { ...t, categories: t.categories && t.categories.length > 0 ? t.categories : [UNCATEGORIZED_TAG_CATEGORY] };
     });
-    await put('tags', tagRecords);
-    if (Array.isArray(data.tagCategories)) {
-      const categoryRecords = data.tagCategories
-        .filter(c => c !== UNCATEGORIZED_TAG_CATEGORY) // toujours générée automatiquement, jamais stockée littéralement
-        .map(c => (typeof c === 'string' ? { name: c } : c));
-      await put('tagCategories', categoryRecords);
-    }
-    await put('challenges', data.challenges);
-    if (Array.isArray(data.wishlist)) await put('wishlist', data.wishlist);
-    if (Array.isArray(data.gearItems)) await put('gearItems', data.gearItems);
-    if (Array.isArray(data.gearCategories)) {
-      const gearCategoryRecords = data.gearCategories
-        .filter(c => c !== UNCATEGORIZED_GEAR_CATEGORY)
-        .map(c => (typeof c === 'string' ? { name: c } : c));
-      await put('gearCategories', gearCategoryRecords);
-    }
-    if (Array.isArray(data.gearMediums)) {
-      const gearMediumRecords = data.gearMediums.map(m => (typeof m === 'string' ? { name: m } : m));
-      await put('gearMediums', gearMediumRecords);
-    }
-    if (Array.isArray(data.combos)) await put('combos', data.combos);
-    if (Array.isArray(data.comboCategories)) {
-      const comboCategoryRecords = data.comboCategories
-        .filter(c => c !== UNCATEGORIZED_COMBO_CATEGORY)
-        .map(c => (typeof c === 'string' ? { name: c } : c));
-      await put('comboCategories', comboCategoryRecords);
-    }
-    if (Array.isArray(data.characters)) await put('characters', data.characters);
-    if (Array.isArray(data.meta)) await put('meta', data.meta);
+    const categoryRecords = Array.isArray(data.tagCategories)
+      ? data.tagCategories.filter(c => c !== UNCATEGORIZED_TAG_CATEGORY).map(c => typeof c === 'string' ? { name: c } : c)
+      : [];
+    const gearCategoryRecords = Array.isArray(data.gearCategories)
+      ? data.gearCategories.filter(c => c !== UNCATEGORIZED_GEAR_CATEGORY).map(c => typeof c === 'string' ? { name: c } : c)
+      : [];
+    const gearMediumRecords = Array.isArray(data.gearMediums)
+      ? data.gearMediums.map(m => typeof m === 'string' ? { name: m } : m)
+      : [];
+    const comboCategoryRecords = Array.isArray(data.comboCategories)
+      ? data.comboCategories.filter(c => c !== UNCATEGORIZED_COMBO_CATEGORY).map(c => typeof c === 'string' ? { name: c } : c)
+      : [];
+
+    const allPuts = [
+      put('books', data.books),
+      put('pageEntries', data.pageEntries),
+      put('years', data.years),
+      put('tags', tagRecords),
+      put('tagCategories', categoryRecords),
+      put('challenges', data.challenges),
+      data.wishlist ? put('wishlist', data.wishlist) : Promise.resolve(),
+      data.gearItems ? put('gearItems', data.gearItems) : Promise.resolve(),
+      put('gearCategories', gearCategoryRecords),
+      put('gearMediums', gearMediumRecords),
+      data.combos ? put('combos', data.combos) : Promise.resolve(),
+      put('comboCategories', comboCategoryRecords),
+      data.characters ? put('characters', data.characters) : Promise.resolve(),
+      data.bookTypes ? put('bookTypes', data.bookTypes) : Promise.resolve(),
+      data.palettes ? put('palettes', data.palettes) : Promise.resolve(),
+      data.techniques ? put('techniques', data.techniques) : Promise.resolve(),
+      data.characterCategories ? put('characterCategories', data.characterCategories) : Promise.resolve(),
+      data.paletteCategories ? put('paletteCategories', data.paletteCategories) : Promise.resolve(),
+      data.techniqueCategories ? put('techniqueCategories', data.techniqueCategories) : Promise.resolve(),
+      data.missions ? put('missions', data.missions) : Promise.resolve(),
+      data.colocopines ? put('colocopines', data.colocopines) : Promise.resolve(),
+      data.meta ? put('meta', data.meta) : Promise.resolve(),
+    ];
+
+    await Promise.all(allPuts);
 
     await transactionDone;
 
